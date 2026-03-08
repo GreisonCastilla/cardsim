@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0f172a; /* Slate 900 for modern dark theme */
+  --color-foreground: #f8fafc;
+  
+  /* Game Zones Colors */
+  --color-zone-attack: rgba(220, 38, 38, 0.15);
+  --color-zone-attack-border: #ef4444;
+  --color-zone-shield: rgba(59, 130, 246, 0.15);
+  --color-zone-shield-border: #3b82f6;
+  --color-zone-mana: rgba(16, 185, 129, 0.15);
+  --color-zone-mana-border: #10b981;
+  --color-zone-cemetery: rgba(107, 114, 128, 0.15);
+  --color-zone-cemetery-border: #9ca3af;
+  --color-zone-banish: rgba(168, 85, 247, 0.15);
+  --color-zone-banish-border: #a855f7;
+  --color-zone-deck: rgba(245, 158, 11, 0.15);
+  --color-zone-deck-border: #f59e0b;
+  --color-zone-extra: rgba(236, 72, 153, 0.15);
+  --color-zone-extra-border: #ec4899;
+}
+
+:root {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  margin: 0;
+  display: flex;
+  min-height: 100vh;
+  min-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Base utility for glassmorphism */
+@utility glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
