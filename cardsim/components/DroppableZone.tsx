@@ -26,9 +26,8 @@ export function DroppableZone({ id, title, children, className, horizontalScroll
       ref={setNodeRef}
       className={cn(
         "relative flex flex-col transition-colors",
-        compact ? "rounded-none w-12 h-16 md:w-14 md:h-20" : (invisible ? "" : "rounded-xl border-2"), // Exact Card Size
-        isOver && !compact && !invisible ? "border-white/50 bg-white/10 ring-2 ring-white/20" : "",
-        isOver && compact ? "ring-2 ring-white/50 z-10" : ((!isOver && !invisible) ? "border-transparent" : ""),
+        compact ? "rounded-none w-12 h-16 md:w-14 md:h-20" : (invisible ? "" : "rounded-xl border-2"),
+        isOver ? "border-white/50 bg-white/10 ring-2 ring-white/50 z-20 shadow-[0_0_15px_rgba(255,255,255,0.3)]" : (invisible ? "" : "border-transparent"),
         className
       )}
     >
@@ -68,10 +67,10 @@ export function DroppableZone({ id, title, children, className, horizontalScroll
       )}
       
       <div className={cn(
-        "z-10 min-h-[3rem]",
-        compact ? "w-full h-full relative" : "flex-1 p-1 gap-1",
-        horizontalScroll && !compact ? "flex overflow-x-auto items-center" : "",
-        !horizontalScroll && !compact ? "flex flex-wrap content-start" : ""
+        "z-10 min-h-[3rem] w-full",
+        compact ? "h-full relative" : "flex-1 relative overflow-y-auto overflow-x-hidden min-h-0",
+        horizontalScroll && !compact ? "flex overflow-x-auto overflow-y-hidden items-center p-2 gap-2" : "",
+        !horizontalScroll && !compact ? "flex flex-wrap content-start p-2 gap-2" : ""
       )}>
         {children}
       </div>

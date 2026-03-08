@@ -18,10 +18,10 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onClick }: Card
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: card.id,
     data: { card, fromZone: zone },
-    disabled: isStatic,
+    disabled: isStatic || isOverlay,
   });
 
-  const style = transform ? {
+  const style = transform && !isDragging ? {
     transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
   } : undefined;
 
@@ -45,7 +45,7 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onClick }: Card
         !isStatic && "cursor-grab active:cursor-grabbing",
         "w-12 h-16 md:w-14 md:h-20", // Compact sizes
         isDragging && "opacity-50 z-50",
-        isOverlay && "opacity-100 z-50 scale-105 shadow-2xl",
+        isOverlay && "opacity-100 z-50 scale-105 shadow-2xl pointer-events-none shadow-white/20",
         isFacedown ? "bg-slate-800 border-slate-600 pattern-isometric pattern-slate-700 pattern-bg-slate-800 pattern-size-2 pattern-opacity-100" : "bg-white border-slate-300",
         isTapped && "rotate-90 origin-center" // Rotate horizontal
       )}

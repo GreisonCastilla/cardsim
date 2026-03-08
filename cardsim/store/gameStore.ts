@@ -3,6 +3,9 @@ import { create } from 'zustand';
 export type CardPosition = 'vertical' | 'horizontal';
 export type CardFace = 'up' | 'down';
 export type PlayerId = 'p1' | 'p2';
+export type PhaseName = 'Start' | 'Untap' | 'Draw' | 'Mana' | 'Main' | 'Attack' | 'End';
+
+export const PHASES: PhaseName[] = ['Start', 'Untap', 'Draw', 'Mana', 'Main', 'Attack', 'End'];
 
 export interface GameCard {
     id: string;
@@ -32,13 +35,19 @@ export type ZoneName =
 interface GameState {
     cards: Record<string, GameCard>;
     zones: Record<ZoneName, string[]>;
+    currentPlayer: PlayerId;
+    currentPhase: PhaseName;
 
     drawCards: (playerId: PlayerId, amount: number) => void;
     shuffleDeck: (playerId: PlayerId) => void;
     moveCard: (cardId: string, fromZone: ZoneName, toZone: ZoneName, newIndex?: number) => void;
+    topToMana: (playerId: PlayerId) => void;
+    topToShield: (playerId: PlayerId) => void;
+    topToGraveyard: (playerId: PlayerId, amount: number) => void;
     toggleTapped: (cardId: string) => void;
     toggleFace: (cardId: string) => void;
-    endTurn: (playerId: PlayerId) => void;
+    nextPhase: () => void;
+    endTurn: (playerId: PlayerId) => void; // Keep for fallback, or maybe remove later
     initializeGame: () => void;
 }
 
@@ -71,6 +80,8 @@ const createInitialZones = (): Record<ZoneName, string[]> => ({
 export const useGameStore = create<GameState>((set) => ({
     cards: {},
     zones: createInitialZones(),
+    currentPlayer: 'p1',
+    currentPhase: 'Start',
 
     drawCards: (playerId, amount) => set((state) => {
         const deckKey = `${playerId}_mainDeck` as ZoneName;
@@ -141,6 +152,57 @@ export const useGameStore = create<GameState>((set) => ({
         };
     }),
 
+    topToMana: (playerId) => set((state) => {
+        const deckKey = `${playerId}_mainDeck` as ZoneName;
+        const manaKey = `${playerId}_manaZone` as ZoneName;
+        if (state.zones[deckKey].length === 0) return state;
+
+        const drawnId = state.zones[deckKey][0];
+        const newDeck = state.zones[deckKey].slice(1);
+        const newMana = [...state.zones[manaKey], drawnId];
+
+        return {
+            zones: { ...state.zones, [deckKey]: newDeck, [manaKey]: newMana },
+            cards: { ...state.cards, [drawnId]: { ...state.cards[drawnId], face: 'up', position: 'horizontal' } }
+        };
+    }),
+
+    topToShield: (playerId) => set((state) => {
+        const deckKey = `${playerId}_mainDeck` as ZoneName;
+        const shieldKey = `${playerId}_shields` as ZoneName;
+        if (state.zones[deckKey].length === 0) return state;
+
+        const drawnId = state.zones[deckKey][0];
+        const newDeck = state.zones[deckKey].slice(1);
+        const newShield = [...state.zones[shieldKey], drawnId];
+
+        return {
+            zones: { ...state.zones, [deckKey]: newDeck, [shieldKey]: newShield },
+            cards: { ...state.cards, [drawnId]: { ...state.cards[drawnId], face: 'down', position: 'vertical' } }
+        };
+    }),
+
+    topToGraveyard: (playerId, amount) => set((state) => {
+        const deckKey = `${playerId}_mainDeck` as ZoneName;
+        const graveKey = `${playerId}_cemetery` as ZoneName;
+        const actualAmount = Math.min(amount, state.zones[deckKey].length);
+        if (actualAmount <= 0) return state;
+
+        const drawnIds = state.zones[deckKey].slice(0, actualAmount);
+        const newDeck = state.zones[deckKey].slice(actualAmount);
+        const newGrave = [...state.zones[graveKey], ...drawnIds];
+
+        const newCards = { ...state.cards };
+        drawnIds.forEach(id => {
+            newCards[id] = { ...newCards[id], face: 'up', position: 'vertical' };
+        });
+
+        return {
+            zones: { ...state.zones, [deckKey]: newDeck, [graveKey]: newGrave },
+            cards: newCards
+        };
+    }),
+
     toggleTapped: (cardId) => set((state) => ({
         cards: {
             ...state.cards,
@@ -160,6 +222,55 @@ export const useGameStore = create<GameState>((set) => ({
             }
         }
     })),
+
+    nextPhase: () => set((state) => {
+        const currentIndex = PHASES.indexOf(state.currentPhase);
+        let nextIndex = currentIndex + 1;
+        let nextPlayer = state.currentPlayer;
+
+        if (nextIndex >= PHASES.length) {
+            nextIndex = 0;
+            nextPlayer = nextPlayer === 'p1' ? 'p2' : 'p1';
+        }
+
+        const nextPhaseName = PHASES[nextIndex];
+        let newCards = { ...state.cards };
+        let newZones = { ...state.zones };
+
+        if (nextPhaseName === 'Untap') {
+            const attackKey = `${nextPlayer}_attackZone` as ZoneName;
+            const manaKey = `${nextPlayer}_manaZone` as ZoneName;
+            state.zones[attackKey].forEach(id => {
+                newCards[id] = { ...newCards[id], position: 'vertical' };
+            });
+            state.zones[manaKey].forEach(id => {
+                newCards[id] = { ...newCards[id], position: 'vertical' };
+            });
+        } else if (nextPhaseName === 'Draw') {
+            const deckKey = `${nextPlayer}_mainDeck` as ZoneName;
+            const handKey = `${nextPlayer}_hand` as ZoneName;
+            if (state.zones[deckKey].length > 0) {
+                const drawnId = state.zones[deckKey][0];
+                const newDeck = state.zones[deckKey].slice(1);
+                const newHand = [...state.zones[handKey], drawnId];
+                
+                newCards[drawnId] = { ...newCards[drawnId], face: 'up', position: 'vertical' };
+                
+                newZones = {
+                    ...newZones,
+                    [deckKey]: newDeck,
+                    [handKey]: newHand
+                };
+            }
+        }
+
+        return {
+            currentPhase: nextPhaseName,
+            currentPlayer: nextPlayer,
+            cards: newCards,
+            zones: newZones
+        };
+    }),
 
     endTurn: (playerId) => set((state) => {
         const attackKey = `${playerId}_attackZone` as ZoneName;
@@ -231,7 +342,9 @@ export const useGameStore = create<GameState>((set) => ({
             zones: {
                 ...p1Data.zonesPart,
                 ...p2Data.zonesPart,
-            } as Record<ZoneName, string[]>
+            } as Record<ZoneName, string[]>,
+            currentPlayer: 'p1',
+            currentPhase: 'Start'
         };
     })
 }));
