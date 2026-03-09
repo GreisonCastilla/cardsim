@@ -10,7 +10,7 @@ interface CardProps {
   zone?: ZoneName;
   isOverlay?: boolean;
   isStatic?: boolean; // Disables DnD entirely
-  onHover?: (card: GameCard) => void;
+  onHover?: (card: GameCard | null) => void;
   onClick?: (card: GameCard, event: React.MouseEvent) => void;
 }
 
@@ -29,6 +29,10 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onClick }: Card
     if (onHover && !isDragging) onHover(card);
   };
 
+  const handleMouseLeave = () => {
+    if (onHover && !isDragging) onHover(null);
+  };
+
   const isFacedown = card.face === 'down';
   const isTapped = card.position === 'horizontal';
 
@@ -39,49 +43,43 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onClick }: Card
       {...(isStatic ? {} : listeners)}
       {...(isStatic ? {} : attributes)}
       onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       onClick={(e) => onClick && onClick(card, e)}
       className={cn(
-        "relative rounded-xl border-2 transition-all flex-shrink-0 shadow-lg",
+        "relative transition-all duration-200 border border-white/10",
         !isStatic && "cursor-grab active:cursor-grabbing",
-        "w-12 h-16 md:w-14 md:h-20", // Compact sizes
+        "w-full h-full aspect-[3/4] shrink-0", 
         isDragging && "opacity-50 z-50",
-        isOverlay && "opacity-100 z-50 scale-105 shadow-2xl pointer-events-none shadow-white/20",
-        isFacedown ? "bg-slate-800 border-slate-600 pattern-isometric pattern-slate-700 pattern-bg-slate-800 pattern-size-2 pattern-opacity-100" : "bg-white border-slate-300",
-        isTapped && "rotate-90 origin-center" // Rotate horizontal
+        isOverlay && "opacity-100 z-50 scale-105 pointer-events-none ring-1 ring-white/30",
+        isFacedown ? "bg-slate-900" : "bg-white",
+        isTapped && "rotate-90 origin-center" 
       )}
     >
       {!isFacedown ? (
-        <div className="flex flex-col h-full w-full p-1 text-slate-900 justify-between select-none relative overflow-hidden bg-slate-50">
-          {/* Mana Cost Circle */}
-          <div className="absolute top-1 right-1 z-20 flex items-center justify-center bg-blue-600 text-white rounded-full w-5 h-5 md:w-6 md:h-6 border border-blue-400 shadow-sm shadow-blue-900/20">
-            <span className="text-[10px] md:text-sm font-black leading-none">{card.manaCost}</span>
+        <div className="flex flex-col h-full w-full p-0.5 text-slate-900 justify-between select-none relative overflow-hidden bg-white">
+          {/* Mana Cost - minimalist */}
+          <div className="absolute top-0.5 right-0.5 z-20 flex items-center justify-center bg-blue-500 text-white w-3 h-3 md:w-4 md:h-4">
+            <span className="text-[7px] md:text-[9px] font-black leading-none">{card.manaCost}</span>
           </div>
           
-          {/* Future Image Area */}
-          <div className="relative z-10 flex-1 my-0.5 bg-slate-200/50 rounded-lg border border-slate-300/30 flex items-center justify-center overflow-hidden">
+          <div className="relative z-10 flex-1 my-0.5 bg-slate-100 flex items-center justify-center overflow-hidden">
             {card.image ? (
               <img src={card.image} alt={card.name} className="object-cover w-full h-full" draggable={false} />
             ) : (
               <div className="flex flex-col items-center gap-1 opacity-20">
-                <Shield size={16} className="text-slate-400" />
+                <Shield size={12} className="text-slate-400" />
               </div>
             )}
           </div>
+          <div className="bg-slate-900 text-white text-[5px] md:text-[6px] px-0.5 truncate leading-tight uppercase font-bold">
+            {card.name}
+          </div>
         </div>
       ) : (
-        <div className="w-full h-full rounded-xl flex items-center justify-center border-2 border-slate-700 bg-[#1e293b] p-1 overflow-hidden">
-          {/* Premium Card Back Face Design */}
-          <div className="w-full h-full border border-slate-600/50 rounded-lg bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
-             {/* Abstract pattern */}
-             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-400 via-transparent to-transparent"></div>
-             <div className="absolute inset-0 pattern-grid-slate-700/20 pattern-size-4"></div>
-             
-             <div className="relative w-8 h-8 md:w-10 md:h-10 rounded-full border border-slate-600 bg-slate-800 flex items-center justify-center shadow-inner shadow-black/50">
-                <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-lg shadow-blue-500/20 flex items-center justify-center">
-                   <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white/20 blur-[1px]"></div>
-                </div>
-             </div>
-          </div>
+        <div className="w-full h-full flex items-center justify-center bg-slate-900 border border-white/5">
+           <div className="w-4 h-4 md:w-5 md:h-5 border border-white/10 flex items-center justify-center">
+              <div className="w-1.5 h-1.5 bg-slate-700"></div>
+           </div>
         </div>
       )}
     </div>

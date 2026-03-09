@@ -134,13 +134,21 @@ export const useGameStore = create<GameState>((set) => ({
         const updatedCard = { ...state.cards[cardId] };
         const toZoneLower = toZone.toLowerCase();
 
+        // Sandbox Adaptive Logic
         if (toZoneLower.includes('shields') || toZoneLower.includes('maindeck') || toZoneLower.includes('gachi')) {
             updatedCard.face = 'down';
         } else {
             updatedCard.face = 'up';
         }
 
-        updatedCard.position = 'vertical';
+        // Tapped state: usually untaped when moved unless it's a specific action, 
+        // but for sandbox we reset position to vertical unless it's already there.
+        // If moving to mana, we keep its previous tapped state or reset? 
+        // User says "si cae en Mana, permite girarla", implying it starts untaped or keeps state.
+        // We'll reset to vertical for clarity unless it's being moved within battle zone (manual positioning).
+        if (fromZone !== toZone) {
+            updatedCard.position = 'vertical';
+        }
 
         return {
             cards: { ...state.cards, [cardId]: updatedCard },
