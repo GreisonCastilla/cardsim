@@ -30,7 +30,7 @@ export type ZoneName =
     | 'p1_cemetery' | 'p2_cemetery'
     | 'p1_banishZone' | 'p2_banishZone'
     | 'p1_hyperspatial' | 'p2_hyperspatial'
-    | 'p1_gachi' | 'p2_gachi';
+    | 'p1_gZone' | 'p2_gZone';
 
 interface GameState {
     cards: Record<string, GameCard>;
@@ -46,6 +46,7 @@ interface GameState {
     topToGraveyard: (playerId: PlayerId, amount: number) => void;
     toggleTapped: (cardId: string) => void;
     toggleFace: (cardId: string) => void;
+    untapAll: (playerId: PlayerId) => void;
     nextPhase: () => void;
     endTurn: (playerId: PlayerId) => void; // Keep for fallback, or maybe remove later
     initializeGame: () => void;
@@ -58,7 +59,7 @@ const generateDeck = (count: number, prefix: string, owner: PlayerId): GameCard[
         description: `Esta es una carta de prueba generada para ${owner.toUpperCase()}.`,
         manaCost: Math.floor(Math.random() * 8) + 1,
         attack: (Math.floor(Math.random() * 10) + 1) * 1000,
-        color: 'white',
+        color: ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7'][Math.floor(Math.random() * 5)],
         position: 'vertical',
         face: 'down',
         owner
@@ -74,7 +75,7 @@ const createInitialZones = (): Record<ZoneName, string[]> => ({
     p1_cemetery: [], p2_cemetery: [],
     p1_banishZone: [], p2_banishZone: [],
     p1_hyperspatial: [], p2_hyperspatial: [],
-    p1_gachi: [], p2_gachi: [],
+    p1_gZone: [], p2_gZone: [],
 });
 
 export const useGameStore = create<GameState>((set) => ({
@@ -231,6 +232,21 @@ export const useGameStore = create<GameState>((set) => ({
         }
     })),
 
+    untapAll: (playerId) => set((state) => {
+        const attackKey = `${playerId}_attackZone` as ZoneName;
+        const manaKey = `${playerId}_manaZone` as ZoneName;
+        const newCards = { ...state.cards };
+        
+        state.zones[attackKey].forEach(id => {
+            newCards[id] = { ...newCards[id], position: 'vertical' };
+        });
+        state.zones[manaKey].forEach(id => {
+            newCards[id] = { ...newCards[id], position: 'vertical' };
+        });
+
+        return { cards: newCards };
+    }),
+
     nextPhase: () => set((state) => {
         const currentIndex = PHASES.indexOf(state.currentPhase);
         let nextIndex = currentIndex + 1;
@@ -261,9 +277,9 @@ export const useGameStore = create<GameState>((set) => ({
                 const drawnId = state.zones[deckKey][0];
                 const newDeck = state.zones[deckKey].slice(1);
                 const newHand = [...state.zones[handKey], drawnId];
-                
+
                 newCards[drawnId] = { ...newCards[drawnId], face: 'up', position: 'vertical' };
-                
+
                 newZones = {
                     ...newZones,
                     [deckKey]: newDeck,
@@ -301,12 +317,12 @@ export const useGameStore = create<GameState>((set) => ({
         const initPlayerCards = (owner: PlayerId) => {
             const main = generateDeck(40, 'main', owner);
             const hyper = generateDeck(8, 'hyper', owner);
-            const gachi = generateDeck(4, 'gachi', owner);
+            const gzoneDeck = generateDeck(4, 'gZone', owner);
 
-            gachi.forEach(c => c.face = 'down');
+            gzoneDeck.forEach(c => c.face = 'down');
             hyper.forEach(c => c.face = 'up');
 
-            const allPcards = [...main, ...hyper, ...gachi];
+            const allPcards = [...main, ...hyper, ...gzoneDeck];
 
             const shuffledMainIds = main.map(c => c.id).sort(() => Math.random() - 0.5);
             const drawnShields = shuffledMainIds.splice(0, 5);
@@ -332,7 +348,7 @@ export const useGameStore = create<GameState>((set) => ({
                     [`${owner}_cemetery`]: [],
                     [`${owner}_banishZone`]: [],
                     [`${owner}_hyperspatial`]: hyper.map(c => c.id),
-                    [`${owner}_gachi`]: gachi.map(c => c.id),
+                    [`${owner}_gZone`]: gzoneDeck.map(c => c.id),
                 }
             };
         };

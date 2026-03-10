@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0f172a; /* Slate 900 for modern dark theme */
+  --color-background: #0f172a;
+  /* Slate 900 for modern dark theme */
   --color-foreground: #f8fafc;
-  
+
   /* Game Zones Colors */
   --color-zone-attack: rgba(220, 38, 38, 0.15);
   --color-zone-attack-border: #ef4444;
@@ -22,25 +23,73 @@
 }
 
 :root {
-  --background: #0f172a;
+  --background: radial-gradient(circle at center, #111827 0%, #030508 100%);
   --foreground: #f8fafc;
 }
 
 body {
   background: var(--background);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   margin: 0;
   display: flex;
   min-height: 100vh;
   min-width: 100vw;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* Base utility for glassmorphism */
 @utility glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@utility glass-mana {
+  background: rgba(16, 185, 129, 0.08);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.05);
+}
+
+@utility glass-shield {
+  background: rgba(245, 158, 11, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.05);
+}
+
+@utility badge-neon-mana {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+}
+
+@utility badge-neon-shield {
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+@utility custom-scrollbar-thin {
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+}
+
+@utility custom-scrollbar-invisible {
+  &::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

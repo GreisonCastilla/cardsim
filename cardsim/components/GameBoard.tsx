@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -10,14 +15,33 @@ import {
   useSensor,
   useSensors,
   pointerWithin,
-  MeasuringStrategy
-} from '@dnd-kit/core';
-import { useGameStore, GameCard, ZoneName, PlayerId, PHASES } from '../store/gameStore';
-import { DroppableZone } from './DroppableZone';
-import { Card } from './Card';
-import { LogOut, Swords, Shield, Droplet, X, Eye, Layers, Shuffle, ArrowDownCircle, Search, RefreshCcw } from 'lucide-react';
-import { cn } from '../lib/utils';
-import { motion } from 'framer-motion';
+  MeasuringStrategy,
+} from "@dnd-kit/core";
+import {
+  useGameStore,
+  GameCard,
+  ZoneName,
+  PlayerId,
+  PHASES,
+} from "../store/gameStore";
+import { DroppableZone } from "./DroppableZone";
+import { Card } from "./Card";
+import {
+  Swords,
+  Shield,
+  Droplet,
+  X,
+  Eye,
+  Layers,
+  Shuffle,
+  ArrowDownCircle,
+  Search,
+  RefreshCcw,
+  SkipForward,
+} from "lucide-react";
+import { cn } from "../lib/utils";
+
+// ─── Local Types ──────────────────────────────────────────────────────────────
 
 interface PlacementMenu {
   card: GameCard;
@@ -35,7 +59,7 @@ interface ContextMenuState {
 
 interface ViewModalState {
   zone: ZoneName;
-  mode: 'full' | 'private' | 'reveal';
+  mode: "full" | "private" | "reveal";
   amount?: number;
 }
 
@@ -45,119 +69,188 @@ interface DeckMenuState {
   y: number;
 }
 
+// ─── Componente Principal ─────────────────────────────────────────────────────
+
 export function GameBoard({ onExit }: { onExit: () => void }) {
-  const { cards, zones, initializeGame, moveCard, drawCards, shuffleDeck, toggleTapped, toggleFace, currentPhase, currentPlayer, nextPhase, topToMana, topToShield, topToGraveyard } = useGameStore();
+  const {
+    cards,
+    zones,
+    initializeGame,
+    moveCard,
+    drawCards,
+    shuffleDeck,
+    toggleTapped,
+    toggleFace,
+    currentPhase,
+    currentPlayer,
+    nextPhase,
+    topToMana,
+    topToShield,
+    topToGraveyard,
+    untapAll,
+  } = useGameStore();
+
+  // ─── States ────────────────────────────────────────────────────────────────
+  const [mounted, setMounted] = useState(false);
   const [activeCard, setActiveCard] = useState<GameCard | null>(null);
-  const [hoveredCard, setHoveredCard] = useState<GameCard | null>(null);
-  const [isHandHovered, setIsHandHovered] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const showHand = isHandHovered || !!activeCard;
-
-  const handleCardHover = useCallback((card: GameCard | null) => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
-    }
-    
-    // Condición de Visibilidad: la gigantografía SOLO se activa si la carta está 'Boca Arriba'
-    if (card && card.face === 'up') {
-      hoverTimeoutRef.current = setTimeout(() => {
-        setHoveredCard(card);
-      }, 400); // 400ms delay para activación (Hover Delay)
-    } else {
-      setHoveredCard(null);
-    }
-  }, []);
-
+  const [previewCard, setPreviewCard] = useState<GameCard | null>(null);
   const [viewingZone, setViewingZone] = useState<ViewModalState | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const [drawAmount, setDrawAmount] = useState<Record<PlayerId, number>>({ p1: 1, p2: 1 });
+  const [hoveredCard, setHoveredCard] = useState<GameCard | null>(null);
   const [placementMenu, setPlacementMenu] = useState<PlacementMenu | null>(null);
+  const [hoveredHand, setHoveredHand] = useState<PlayerId | null>(null);
+  const [isBattleHovered, setIsBattleHovered] = useState(false);
   const [deckMenu, setDeckMenu] = useState<DeckMenuState | null>(null);
-  const [isInspectingDeck, setIsInspectingDeck] = useState<{ pid: PlayerId, mode: 'private' | 'reveal' } | null>(null);
-  const [lookAmount, setLookAmount] = useState<number>(5);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const isDraggingRef = useRef(false);
+  const [drawAmt, setDrawAmt] = useState<Record<PlayerId, number>>({ p1: 0, p2: 0 });
+  const [manaAmt, setManaAmt] = useState<Record<PlayerId, number>>({ p1: 0, p2: 0 });
+  const [graveAmt, setGraveAmt] = useState<Record<PlayerId, number>>({ p1: 0, p2: 0 });
+  const [lookAmt, setLookAmt] = useState<Record<PlayerId, number>>({ p1: 0, p2: 0 });
+  const [revealAmt, setRevealAmt] = useState<Record<PlayerId, number>>({ p1: 0, p2: 0 });
+  const [shieldAmt, setShieldAmt] = useState<Record<PlayerId, number>>({ p1: 0, p2: 0 });
 
+  // ─── Refs ──────────────────────────────────────────────────────────────────
+  const menuRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ─── Lifecycle & Global Events ─────────────────────────────────────────────
   useEffect(() => {
     setMounted(true);
     initializeGame();
-    return () => {
-      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    };
   }, [initializeGame]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setPlacementMenu(null);
+        setDeckMenu(null);
+      }
+      if (contextMenu) setContextMenu(null);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. ESC to close all
+      if (e.key === "Escape") {
+        setPlacementMenu(null);
+        setDeckMenu(null);
+        setContextMenu(null);
+        setViewingZone(null);
+        return;
+      }
+
+      // 2. Global Hotkeys (only if not typing)
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+
+      const key = e.key.toLowerCase();
+      if (key === 'd') {
+        drawCards(currentPlayer, 1);
+      } else if (key === 'u') {
+        untapAll(currentPlayer);
+      } else if (key === ' ') {
+        if (previewCard) return;
+        e.preventDefault();
+        nextPhase();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentPlayer, drawCards, untapAll, nextPhase, contextMenu, previewCard]);
+
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const card = active.data.current?.card as GameCard;
+  const handleCardHover = useCallback((card: GameCard | null, zone?: ZoneName) => {
+    if (previewTimer.current) {
+      clearTimeout(previewTimer.current);
+      previewTimer.current = null;
+    }
+
+    if (!card) {
+      setPreviewCard(null);
+      return;
+    }
+
+    // Condition: Active only on Face Up cards (Consolidation requirement)
+    const canSee = card.face === "up";
+
+    if (canSee) {
+      previewTimer.current = setTimeout(() => setPreviewCard(card), 450);
+    } else {
+      setPreviewCard(null);
+    }
+  }, []);
+
+  const handleDragStart = (e: DragStartEvent) => {
+    const card = e.active.data.current?.card as GameCard | undefined;
     if (card) {
       setActiveCard(card);
-      isDraggingRef.current = true;
+      isDragging.current = true;
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
     setActiveCard(null);
-    setTimeout(() => { isDraggingRef.current = false; }, 50);
+    setTimeout(() => { isDragging.current = false; }, 50);
 
     const cardId = active.id as string;
-    let fromZone: ZoneName | undefined = active.data.current?.fromZone as ZoneName;
+    let fromZone = active.data.current?.fromZone as ZoneName | undefined;
 
     if (!fromZone) {
-      for (const [zoneName, cardIds] of Object.entries(zones)) {
-        if (cardIds.includes(cardId)) {
-          fromZone = zoneName as ZoneName;
-          break;
-        }
+      for (const [z, ids] of Object.entries(zones)) {
+        if ((ids as string[]).includes(cardId)) { fromZone = z as ZoneName; break; }
       }
     }
 
-    let toZone = over?.id as ZoneName;
+    const toZone = over?.id as ZoneName | undefined;
     if (fromZone && toZone) {
       moveCard(cardId, fromZone, toZone);
     }
   };
 
   const handleCardClick = (card: GameCard, event?: React.MouseEvent) => {
-    if (isDraggingRef.current) return;
+    if (isDragging.current) return;
 
-    let currentZone: ZoneName | undefined;
-    for (const [zoneName, cardIds] of Object.entries(zones)) {
-      if (cardIds.includes(card.id)) {
-        currentZone = zoneName as ZoneName;
-        break;
-      }
+    let zone: ZoneName | undefined;
+    for (const [z, ids] of Object.entries(zones)) {
+      if ((ids as string[]).includes(card.id)) { zone = z as ZoneName; break; }
     }
+    if (!zone) return;
 
-    if (currentZone?.includes('hand')) {
-      // Show contextual popup near the card
+    if (zone.includes("hand")) {
       setPlacementMenu({
-          card,
-          fromZone: currentZone,
-          x: event?.clientX || window.innerWidth / 2,
-          y: (event?.clientY || 0) - 100, // Offset to appear above card
+        card,
+        fromZone: zone,
+        x: event?.clientX ?? window.innerWidth / 2,
+        y: (event?.clientY ?? 0) - 20,
       });
       return;
     }
 
-    if (currentZone?.includes('attackZone') || currentZone?.includes('manaZone')) {
+    if (zone.includes("mainDeck")) {
+      setDeckMenu({ pid: card.owner, x: event?.clientX ?? 0, y: event?.clientY ?? 0 });
+      return;
+    }
+
+    if (zone.includes("attackZone") || zone.includes("manaZone")) {
       toggleTapped(card.id);
-    } else if (currentZone?.includes('shields')) {
+    } else if (zone.includes("shields")) {
       toggleFace(card.id);
     }
   };
 
-  const handleDeckClick = (pid: PlayerId, e: React.MouseEvent) => {
-    setDeckMenu({ pid, x: e.clientX, y: e.clientY });
+  const handleContextMenu = (e: React.MouseEvent, card: GameCard, zone: ZoneName) => {
+    if (zone.includes("manaZone") || zone.includes("shields")) {
+      e.preventDefault();
+      setContextMenu({ card, zone, x: e.clientX, y: e.clientY });
+    }
   };
 
   const handlePlaceCard = useCallback((toZone: ZoneName) => {
@@ -166,192 +259,269 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
     setPlacementMenu(null);
   }, [placementMenu, moveCard]);
 
-  useEffect(() => {
-    const handleOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setPlacementMenu(null);
-        setDeckMenu(null);
-      }
-      setContextMenu(null);
-    };
-    const handleKey = (e: KeyboardEvent) => {
-      if (document.activeElement?.tagName === 'INPUT') return;
-      if (e.key === 'Escape') {
-        setPlacementMenu(null);
-        setDeckMenu(null);
-        setContextMenu(null);
-        setIsInspectingDeck(null);
-        setViewingZone(null);
-      }
-      const key = e.key.toLowerCase();
-      if (key === 'd') {
-        const state = useGameStore.getState();
-        state.drawCards(state.currentPlayer, 1);
-      }
-      if (key === 'u') {
-        const state = useGameStore.getState();
-        const pid = state.currentPlayer;
-        state.zones[`${pid}_attackZone`].forEach(id => {
-           if (state.cards[id].position === 'horizontal') state.toggleTapped(id);
-        });
-        state.zones[`${pid}_manaZone`].forEach(id => {
-           if (state.cards[id].position === 'horizontal') state.toggleTapped(id);
-        });
-      }
-      if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault();
-        useGameStore.getState().nextPhase();
-      }
-    };
-    document.addEventListener('mousedown', handleOutside);
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleOutside);
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [placementMenu, deckMenu, contextMenu]);
-
-  const handleContextMenu = (e: React.MouseEvent, card: GameCard, zone: ZoneName) => {
-    if (zone.includes('manaZone') || zone.includes('shields')) {
-      e.preventDefault();
-      setContextMenu({ card, zone, x: e.clientX, y: e.clientY });
-    }
+  const execDraw = (pid: PlayerId) => {
+    const amt = drawAmt[pid] > 0 ? drawAmt[pid] : 1;
+    drawCards(pid, amt);
+    setDrawAmt(prev => ({ ...prev, [pid]: 0 }));
+    setDeckMenu(null);
+  };
+  const execMana = (pid: PlayerId) => {
+    const amt = manaAmt[pid] > 0 ? manaAmt[pid] : 1;
+    for (let i = 0; i < amt; i++) topToMana(pid);
+    setManaAmt(prev => ({ ...prev, [pid]: 0 }));
+    setDeckMenu(null);
+  };
+  const execGrave = (pid: PlayerId) => {
+    const amt = graveAmt[pid] > 0 ? graveAmt[pid] : 1;
+    topToGraveyard(pid, amt);
+    setGraveAmt(prev => ({ ...prev, [pid]: 0 }));
+    setDeckMenu(null);
+  };
+  const execShield = (pid: PlayerId) => {
+    const amt = shieldAmt[pid] > 0 ? shieldAmt[pid] : 1;
+    for (let i = 0; i < amt; i++) topToShield(pid);
+    setShieldAmt(prev => ({ ...prev, [pid]: 0 }));
+    setDeckMenu(null);
+  };
+  const execLook = (pid: PlayerId) => {
+    const amt = lookAmt[pid] > 0 ? lookAmt[pid] : 1;
+    setViewingZone({ zone: `${pid}_mainDeck` as ZoneName, mode: "private", amount: amt });
+    setDeckMenu(null);
+    setLookAmt(p => ({ ...p, [pid]: 0 }));
+  };
+  const execReveal = (pid: PlayerId) => {
+    const amt = revealAmt[pid] > 0 ? revealAmt[pid] : 1;
+    setViewingZone({ zone: `${pid}_mainDeck` as ZoneName, mode: "reveal", amount: amt });
+    setDeckMenu(null);
+    setRevealAmt(p => ({ ...p, [pid]: 0 }));
   };
 
-  const renderManaBadge = (pid: PlayerId) => {
-    const manaCards = zones[`${pid}_manaZone`];
-    if (manaCards.length === 0) return 0;
+  const numInputCls = "w-9 bg-black/40 text-center text-white text-[9px] font-black outline-none border-x border-white/5 focus:bg-blue-900/40 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
-    const colors = manaCards.reduce((acc, id) => {
-        let col = cards[id]?.color || 'white';
-        col = col.toLowerCase();
-        acc[col] = (acc[col] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+  const renderHUDZone = (key: string, pid: PlayerId, f: boolean) => {
+    const labels: Record<string, string> = { hyperspatial: 'HS', mainDeck: 'DECK', cemetery: 'GY', banishZone: 'ABBYS', gZone: 'G' };
+    const zoneKey = (key === 'mainDeck' ? `${pid}_mainDeck` : `${pid}_${key}`) as ZoneName;
+    const topCardId = zones[zoneKey].length > 0 ? zones[zoneKey][zones[zoneKey].length - 1] : null;
+    const isPublic = ['cemetery', 'hyperspatial', 'banishZone', 'gZone'].includes(key);
+    const rot = f ? "rotate-180" : "";
 
     return (
-        <div className="flex items-center gap-[3px]">
-            {Object.entries(colors).map(([color, count]) => {
-                let bg = 'bg-slate-300';
-                let shadow = '';
-                if (color.includes('red') || color.includes('fire')) { bg = 'bg-red-500'; shadow = 'shadow-[0_0_4px_red]'; }
-                else if (color.includes('blue') || color.includes('water')) { bg = 'bg-blue-500'; shadow = 'shadow-[0_0_4px_blue]'; }
-                else if (color.includes('green') || color.includes('nature')) { bg = 'bg-green-500'; shadow = 'shadow-[0_0_4px_green]'; }
-                else if (color.includes('yellow') || color.includes('light')) { bg = 'bg-yellow-400'; shadow = 'shadow-[0_0_4px_yellow]'; }
-                else if (color.includes('black') || color.includes('dark')) { bg = 'bg-purple-600'; shadow = 'shadow-[0_0_4px_purple]'; }
-                
-                return (
-                    <div key={color} className={cn(`w-2.5 h-2.5 rounded-full flex items-center justify-center text-[6px] text-white font-black drop-shadow-md`, bg, shadow)}>
-                        {count > 1 ? count : ''}
-                    </div>
-                );
-            })}
-        </div>
+      <DroppableZone
+        key={key}
+        id={zoneKey}
+        title=""
+        compact
+        label={labels[key]}
+        count={zones[zoneKey].length}
+        onView={isPublic ? () => setViewingZone({ zone: zoneKey, mode: "full" }) : undefined}
+      >
+        {topCardId && (
+          <div className={cn("absolute inset-0 p-1", rot)}>
+            <Card
+              card={cards[topCardId]}
+              zone={zoneKey}
+              onHover={(c) => handleCardHover(c, zoneKey)}
+              onLeave={() => handleCardHover(null)}
+              onClick={handleCardClick}
+            />
+          </div>
+        )}
+      </DroppableZone>
     );
   };
 
-  const renderPlayerBoard = (pid: PlayerId, reversed: boolean = false) => {
-    const r = reversed;
+  // ─── Per-player board (Sharp Dividers 60/40) ───────────────────────────────
+  const renderBoard = (pid: PlayerId, flipped: boolean) => {
+    const f = flipped;
+    const rot = f ? "rotate-180" : "";
+
     return (
-      <div className={`w-full flex-1 flex flex-col ${r ? 'rotate-180' : ''} min-h-0 relative z-10`}>
-        {/* Battle Zone */}
-        <div className="flex-[6] w-full flex relative z-10 border-b border-white/5">
-          <DroppableZone id={`${pid}_attackZone`} title="Battle Zone" className="flex-1 border-0" count={zones[`${pid}_attackZone`].length}>
-            <div className="flex flex-wrap content-start p-2 gap-2 w-full h-full overflow-y-auto custom-scrollbar relative z-10">
+      <div className={cn("grid grid-rows-[60%_40%] h-[50vh] w-full relative z-10 overflow-hidden", rot)}>
+
+        {/* ── Battle Zone (60%) ── */}
+        <div
+          className="relative h-full border-b border-[#00f2ff]/20 backdrop-blur-[16px] overflow-hidden"
+          style={{
+            backgroundColor: 'rgba(60, 30, 30, 0.18)',
+            backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.05) 0%, transparent 70%)'
+          }}
+          onMouseEnter={() => setIsBattleHovered(true)}
+          onMouseLeave={() => setIsBattleHovered(false)}
+        >
+          <DroppableZone
+            id={`${pid}_attackZone`}
+            title=""
+            label="BATTLE ZONE"
+            className="w-full h-full"
+            count={zones[`${pid}_attackZone`].length}
+          >
+            <div className="flex flex-wrap content-start p-6 pt-10 gap-3 w-full h-full overflow-y-auto custom-scrollbar">
               {zones[`${pid}_attackZone`].map(id => (
-                <div key={id} className={`shrink-0 ${r ? 'rotate-180' : ''} w-16`}>
-                   <Card card={cards[id]} zone={`${pid}_attackZone` as ZoneName} onHover={handleCardHover} onClick={handleCardClick} />
+                <div key={id} className={cn("shrink-0 w-16 transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 hover:z-50", rot)}>
+                  <Card
+                    card={cards[id]}
+                    zone={`${pid}_attackZone` as ZoneName}
+                    onHover={(c) => handleCardHover(c, `${pid}_attackZone` as ZoneName)}
+                    onLeave={() => handleCardHover(null)}
+                    onClick={handleCardClick}
+                  />
                 </div>
               ))}
             </div>
           </DroppableZone>
         </div>
 
-        {/* Resources Section */}
-        <div className="flex-[4] w-full flex flex-col relative z-20 min-h-0 bg-black/10">
-          <div className="flex-1 w-full flex min-h-0">
-            <DroppableZone id={`${pid}_manaZone`} title="Mana" className="flex-[3] bg-green-900/10 backdrop-blur-[10px] shadow-[inset_0_0_30px_rgba(74,222,128,0.03)] border-r border-[rgba(255,255,255,0.05)]" count={renderManaBadge(pid)}>
-              <div className="flex items-center w-full h-full pl-3 pr-4 overflow-x-auto overflow-y-hidden custom-scrollbar">
-                {zones[`${pid}_manaZone`].map((id, index) => (
-                  <div key={id} onContextMenu={(e) => handleContextMenu(e, cards[id], `${pid}_manaZone` as ZoneName)} className={cn("shrink-0 transition-all duration-300 hover:z-30 hover:-translate-y-1 w-12", index > 0 ? "-ml-6 hover:ml-1" : "", r ? 'rotate-180' : '')}>
-                    <Card card={cards[id]} zone={`${pid}_manaZone` as ZoneName} onHover={handleCardHover} onClick={handleCardClick} />
-                  </div>
-                ))}
-              </div>
-            </DroppableZone>
-            <DroppableZone id={`${pid}_shields`} title="Shields" className="flex-[2] bg-yellow-900/10 backdrop-blur-[10px] shadow-[inset_0_0_30px_rgba(250,204,21,0.03)]" count={zones[`${pid}_shields`].length}>
-              <div className="flex items-center w-full h-full pl-3 pr-4 overflow-x-auto overflow-y-hidden custom-scrollbar gap-1">
-                {zones[`${pid}_shields`].map((id, index) => (
-                  <div key={id} onContextMenu={(e) => handleContextMenu(e, cards[id], `${pid}_shields` as ZoneName)} className={cn("shrink-0 transition-all duration-300 hover:z-30 hover:-translate-y-1 w-12", index > 0 ? "-ml-6 hover:ml-1" : "", r ? 'rotate-180' : '')}>
-                    <Card card={cards[id]} zone={`${pid}_shields` as ZoneName} onHover={handleCardHover} onClick={handleCardClick} />
-                  </div>
-                ))}
-              </div>
-            </DroppableZone>
-          </div>
+        {/* ── Fila de Recursos (40%) ── */}
+        <div className="flex relative h-full overflow-visible">
 
-          <div className="h-10 w-full flex items-center justify-between px-2 shrink-0 border-t border-[rgba(255,255,255,0.05)] bg-[rgba(255,255,255,0.02)] backdrop-blur-md relative z-10">
-            <div className="flex gap-1 shrink-0 h-full items-center">
-              {['hyperspatial', 'gachi', 'banishZone'].map(sub => (
-                <DroppableZone key={sub} id={`${pid}_${sub}` as ZoneName} title={sub.substring(0,5)} compact onView={() => setViewingZone({ zone: `${pid}_${sub}` as ZoneName, mode: 'full'})}>
-                  <div className="absolute top-0 right-1 text-[7px] text-white/40">{zones[`${pid}_${sub}` as ZoneName].length}</div>
-                  <div className="relative w-full h-full flex items-center justify-center opacity-40 hover:opacity-100">
-                    {zones[`${pid}_${sub}` as ZoneName].map(id => (
-                      <div key={id} className={`absolute inset-0 ${r ? 'rotate-180' : ''} w-8 mx-auto`}>
-                        <Card card={cards[id]} zone={`${pid}_${sub}` as ZoneName} onHover={handleCardHover} />
-                      </div>
-                    ))}
+          {/* Mana Zone (Izquierda 50%) */}
+          <DroppableZone
+            id={`${pid}_manaZone`}
+            title=""
+            label="MANA ZONE"
+            className="flex-1 min-w-0 border-r border-[#00ff88]/20 overflow-visible relative backdrop-blur-[16px]"
+            style={{
+              backgroundColor: 'rgba(20, 50, 40, 0.35)',
+              backgroundImage: 'radial-gradient(circle at 0% 100%, rgba(0, 255, 136, 0.08) 0%, transparent 60%)',
+              borderTop: f ? 'none' : '1px solid rgba(0, 255, 136, 0.2)',
+              borderBottom: f ? '1px solid rgba(0, 255, 136, 0.2)' : 'none'
+            }}
+            count={zones[`${pid}_manaZone`].length}
+            manaCards={zones[`${pid}_manaZone`]}
+            cardsData={cards}
+          >
+            <div className="absolute inset-0 z-10 flex flex-nowrap items-start justify-start px-6 pt-1 pb-2 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar transition-all duration-300">
+              {zones[`${pid}_manaZone`].map((id) => {
+                return (
+                  <div
+                    key={id}
+                    onContextMenu={e => handleContextMenu(e, cards[id], `${pid}_manaZone` as ZoneName)}
+                    className={cn(
+                      "shrink-0 w-12 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:z-50 hover:-translate-y-1 group",
+                      rot
+                    )}
+                  >
+                    <Card
+                      card={cards[id]}
+                      zone={`${pid}_manaZone` as ZoneName}
+                      onHover={(c) => handleCardHover(c, `${pid}_manaZone` as ZoneName)}
+                      onLeave={() => handleCardHover(null)}
+                      onClick={handleCardClick}
+                    />
                   </div>
-                </DroppableZone>
-              ))}
+                );
+              })}
             </div>
-            <div className="flex-1" />
-            <div className="flex gap-2 shrink-0 h-full items-center">
-              <DroppableZone id={`${pid}_mainDeck`} title="Deck" compact>
-                 <div className="absolute -top-3 left-0 w-full text-[7px] text-center text-white/30 truncate">{zones[`${pid}_mainDeck`].length}</div>
-                 <div className="relative w-full h-full flex items-center justify-center cursor-pointer hover:ring-1 hover:ring-white/20" onClick={(e) => handleDeckClick(pid, e)}>
-                  {zones[`${pid}_mainDeck`].map(id => (
-                    <div key={id} className={`absolute inset-0 ${r ? 'rotate-180' : ''} w-8 mx-auto`}><Card card={cards[id]} zone={`${pid}_mainDeck`} onHover={handleCardHover} /></div>
-                  ))}
-                </div>
-              </DroppableZone>
-              <DroppableZone id={`${pid}_cemetery`} title="Cem" compact onView={() => setViewingZone({ zone: `${pid}_cemetery`, mode: 'full'})}>
-                 <div className="absolute top-0 right-1 text-[7px] text-white/40">{zones[`${pid}_cemetery`].length}</div>
-                 <div className="relative w-full h-full flex items-center justify-center opacity-60 hover:opacity-100">
-                  {zones[`${pid}_cemetery`].map(id => (
-                    <div key={id} className={`absolute inset-0 ${r ? 'rotate-180' : ''} w-8 mx-auto`}><Card card={cards[id]} zone={`${pid}_cemetery`} onHover={handleCardHover} /></div>
-                  ))}
-                </div>
-              </DroppableZone>
+          </DroppableZone>
+
+          {/* Shield Zone (Derecha 50%) */}
+          <DroppableZone
+            id={`${pid}_shields`}
+            title=""
+            label="SHIELD ZONE"
+            className="flex-1 min-w-0 relative overflow-visible backdrop-blur-[16px]"
+            style={{
+              backgroundColor: 'rgba(60, 50, 20, 0.35)',
+              backgroundImage: 'radial-gradient(circle at 100% 100%, rgba(255, 204, 0, 0.08) 0%, transparent 60%)',
+              borderTop: f ? 'none' : '1px solid rgba(255, 204, 0, 0.2)',
+              borderBottom: f ? '1px solid rgba(255, 204, 0, 0.2)' : 'none'
+            }}
+            count={zones[`${pid}_shields`].length}
+          >
+            <div className="absolute inset-0 z-10 flex flex-nowrap items-start justify-start px-6 pt-1 pb-2 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar transition-all duration-300">
+              {zones[`${pid}_shields`].map((id) => {
+                return (
+                  <div
+                    key={id}
+                    onContextMenu={e => handleContextMenu(e, cards[id], `${pid}_shields` as ZoneName)}
+                    className={cn(
+                      "shrink-0 w-12 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:z-50 hover:-translate-y-1 group",
+                      rot
+                    )}
+                  >
+                    <Card
+                      card={cards[id]}
+                      zone={`${pid}_shields` as ZoneName}
+                      onHover={(c) => handleCardHover(c, `${pid}_shields` as ZoneName)}
+                      onLeave={() => handleCardHover(null)}
+                      onClick={handleCardClick}
+                    />
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          </DroppableZone>
         </div>
 
-        {/* Hand Tray (Retractable Slide-to-Show) */}
-        <div 
-          onMouseEnter={() => setIsHandHovered(true)}
-          onMouseLeave={() => setIsHandHovered(false)}
-          className={cn(
-            "absolute left-1/2 -translate-x-1/2 bottom-0 w-[80%] md:w-[60%] h-[110px] z-[70] pointer-events-none flex flex-col items-center transition-transform duration-300 ease-out",
-            showHand ? "translate-y-0" : "translate-y-[50%]"
-          )}
-        >
-            {/* Background gradient changed to pointer-events-none so it doesn't block the bottom objects */}
-            <div className={cn("w-full h-full flex flex-1 items-end justify-center pointer-events-none transition-opacity duration-300", showHand ? "opacity-100 bg-gradient-to-t from-black/80 to-transparent" : "opacity-60")}>
-              <DroppableZone id={`${pid}_hand`} title="" className="w-full h-full pointer-events-none border-0 bg-transparent flex items-end justify-center" invisible>
-                <div className="flex items-end justify-center w-full h-[90px] relative pointer-events-none mb-1">
-                  {zones[`${pid}_hand`].map((id, index) => (
-                    <div key={id} className={cn("relative transition-all duration-300 hover:-translate-y-[20px] hover:scale-110 hover:z-50 w-16 group pointer-events-auto", index > 0 ? "-ml-8" : "", placementMenu?.card.id === id ? 'ring-2 ring-blue-500 -translate-y-[20px]' : '')}>
-                      <div className={cn("transition-all duration-300 drop-shadow-[0_10px_15px_rgba(0,0,0,0.6)] group-hover:drop-shadow-[0_0_15px_rgba(96,165,250,0.5)]", r ? 'rotate-180' : '')}>
-                        <Card card={cards[id]} zone={`${pid}_hand`} onHover={handleCardHover} onClick={handleCardClick} />
-                      </div>
-                      <div className="absolute -top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-blue-500 w-1 h-1 rounded-full shadow-[0_0_5px_blue]" />
-                    </div>
-                  ))}
-                </div>
-              </DroppableZone>
+        {/* Extra Decks Row (Submerged, Edge Left) */}
+        <div className="absolute bottom-0 left-4 flex gap-1.5 z-[900] pointer-events-none">
+          {['hyperspatial', 'gZone'].map(key => (
+            <div
+              key={key}
+              className="pointer-events-auto transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] translate-y-[55%] hover:-translate-y-[calc(-55%+4px)] hover:scale-105 hover:z-[950] opacity-100 drop-shadow-2xl"
+            >
+              {renderHUDZone(key, pid, f)}
             </div>
+          ))}
         </div>
+
+        {/* Main Flow Row (Submerged, Edge Right) */}
+        <div className="absolute bottom-0 right-4 flex gap-1.5 z-[900] pointer-events-none">
+          {['mainDeck', 'cemetery', 'banishZone'].map(key => (
+            <div
+              key={key}
+              className="pointer-events-auto transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] translate-y-[55%] hover:-translate-y-[calc(-55%+4px)] hover:scale-105 hover:z-[950] opacity-100 drop-shadow-2xl"
+            >
+              {renderHUDZone(key, pid, f)}
+            </div>
+          ))}
+        </div>
+
+      </div>
+    );
+  };
+
+  const renderHandOverlay = (pid: PlayerId, flipped: boolean) => {
+    const f = flipped;
+    const rot = f ? "rotate-180" : "";
+
+    return (
+      <div
+        className={cn(
+          "absolute left-0 w-full z-[1000] flex flex-col items-center pointer-events-none transition-all duration-300 ease-out overflow-visible",
+          f ? "top-4 rotate-180" : "bottom-4",
+          (!hoveredHand || hoveredHand !== pid) && activeCard?.owner !== pid
+            ? (f ? "-translate-y-1/2 opacity-100 scale-95" : "translate-y-1/2 opacity-100 scale-95")
+            : (f ? "-translate-y-[20%] opacity-100 scale-100" : "translate-y-[20%] opacity-100 scale-100")
+        )}
+        style={{ height: 'fit-content' }}
+      >
+        <DroppableZone id={`${pid}_hand`} title="" className="w-full h-full bg-transparent pointer-events-none" invisible count={zones[`${pid}_hand`].length}>
+          <div className="flex items-end justify-center w-full h-full pb-2 pointer-events-none">
+            {zones[`${pid}_hand`].map((id, idx) => (
+              <div
+                key={id}
+                onMouseEnter={() => setHoveredHand(pid)}
+                onMouseLeave={() => setHoveredHand(null)}
+                className={cn(
+                  "relative transition-all duration-200 hover:-translate-y-6 hover:scale-110 hover:z-[510] w-14 group cursor-pointer pointer-events-auto",
+                  idx > 0 ? "-ml-6" : "",
+                  placementMenu?.card.id === id ? "ring-2 ring-blue-500/50 -translate-y-4" : ""
+                )}
+              >
+                <div className={rot}>
+                  <Card
+                    card={cards[id]}
+                    zone={`${pid}_hand`}
+                    onHover={(c) => handleCardHover(c, `${pid}_hand` as ZoneName)}
+                    onLeave={() => handleCardHover(null)}
+                    onClick={handleCardClick}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </DroppableZone>
       </div>
     );
   };
@@ -359,299 +529,207 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
   if (!mounted) return null;
 
   return (
-    <DndContext 
-      sensors={sensors} 
-      collisionDetection={pointerWithin} 
-      measuring={{ droppable: { strategy: MeasuringStrategy.Always }}}
-      onDragStart={handleDragStart} 
+    <DndContext
+      sensors={sensors}
+      collisionDetection={pointerWithin}
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-screen w-full bg-[radial-gradient(ellipse_at_center,_#1a1f35_0%,_#05080f_100%)] text-slate-300 overflow-hidden font-[Inter,sans-serif] select-none">
-        {/* Floating Hover Preview (Estilo Untap) */}
-        {hoveredCard && (
-          <div className="fixed top-6 right-6 z-[500] w-64 md:w-80 pointer-events-none animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center gap-4">
-              {/* Image Preview (Layer Superior) */}
-              <div className="w-48 h-64 md:w-64 md:h-[22rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-xl overflow-hidden border border-[rgba(255,255,255,0.1)] bg-black/40 flex items-center justify-center relative pointer-events-auto">
-                <Card card={{ ...hoveredCard, face: 'up', position: 'vertical' }} isStatic />
-              </div>
-              
-              {/* Minimalist Text Box */}
-              <div className="w-full bg-black/40 backdrop-blur-xl rounded-xl p-4 shadow-2xl border border-[rgba(255,255,255,0.1)] pointer-events-auto">
-                <h3 className="text-sm md:text-base font-black text-white/90 uppercase border-b border-[rgba(255,255,255,0.05)] pb-2 mb-2 tracking-widest">{hoveredCard.name}</h3>
-                {/* Scrollable description box */}
-                <div className="max-h-32 md:max-h-40 overflow-y-auto custom-scrollbar pr-2">
-                  <p className="text-[11px] md:text-xs text-white/70 leading-relaxed font-medium whitespace-pre-wrap">{hoveredCard.description}</p>
-                </div>
+      <div className="flex h-screen w-full bg-[#0f172a] text-slate-400 overflow-hidden font-sans select-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)' }}>
+
+        {/* ── Hover Preview (Gigantography) ── */}
+        {previewCard && (
+          <div
+            className="fixed right-5 top-1/2 -translate-y-1/2 z-[950] pointer-events-none flex flex-col drop-shadow-[0_40px_80px_rgba(0,0,0,0.8)]"
+            style={{ width: '26vh' }}
+          >
+            <div className="w-full aspect-[3/4] overflow-hidden rounded-t-lg bg-black/60 shadow-inner">
+              <Card card={{ ...previewCard, face: "up", position: "vertical" }} isOverlay isStatic />
+            </div>
+
+            <div className="bg-[#05070a]/98 backdrop-blur-xl p-4 rounded-b-lg border-t border-white/5 shadow-2xl">
+              <div className="max-h-[20vh] overflow-y-auto custom-scrollbar-invisible">
+                <p className="text-[12px] text-white/80 leading-relaxed font-medium selection:bg-blue-500/30">
+                  {previewCard.description}
+                </p>
               </div>
             </div>
           </div>
         )}
 
+        <main className="flex-1 h-screen flex flex-col relative overflow-hidden bg-[#0a0d14]">
+          {renderBoard("p2", true)}
 
-        {/* Floating Input for Deck Inspection (Look / Reveal) */}
-        {isInspectingDeck && (
-          <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-200">
-             <div className="bg-slate-900 border border-white/20 p-6 flex flex-col gap-4 w-64 shadow-2xl">
-                <div className="flex flex-col">
-                  <span className="text-white font-black uppercase tracking-tighter text-lg">
-                    {isInspectingDeck.mode === 'reveal' ? 'Reveal Top X' : 'Look Top X'}
-                  </span>
-                  <span className="text-white/30 text-[9px] uppercase font-bold tracking-[0.2em]">
-                    {isInspectingDeck.pid === 'p1' ? 'Player 1' : 'Player 2'} Deck
-                  </span>
+          {/* Battle Line (Frontera de Energía Neón) */}
+          <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#00f2ff]/80 shadow-[0_0_15px_rgba(0,242,255,0.6)] z-5 pointer-events-none select-none opacity-50" />
+
+          {/* Phase HUD */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] pointer-events-none w-full flex justify-center">
+            <div className="flex items-center bg-[#0f172a]/80 backdrop-blur-[12px] border border-white/10 p-0.5 px-3 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.5),0_0_10px_rgba(255,255,255,0.05)] pointer-events-auto h-8 transition-all scale-95 origin-center">
+              <div className={cn(
+                "px-3 h-5 rounded-full flex items-center gap-2 mr-3 shadow-inner",
+                currentPlayer === "p1"
+                  ? "bg-blue-500/20 border border-blue-400/30 text-blue-400"
+                  : "bg-red-500/20 border border-red-400/30 text-red-400"
+              )}>
+                <div className={cn("w-1 h-1 rounded-full animate-pulse", currentPlayer === "p1" ? "bg-blue-400 shadow-[0_0_8px_#60a5fa]" : "bg-red-400 shadow-[0_0_8px_#f87171]")} />
+                <span className="text-[9px] font-black uppercase tracking-[0.2em]">{currentPlayer}</span>
+              </div>
+              <div className="flex items-center gap-2.5 px-2">
+                {PHASES.map((phase) => (
+                  <span key={phase} className={cn("text-[8px] font-bold uppercase tracking-widest", currentPhase === phase ? "text-white opacity-100 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]" : "text-slate-500 opacity-40")}>{phase}</span>
+                ))}
+              </div>
+              <button
+                onClick={nextPhase}
+                className="ml-3 pl-4 pr-2 h-5 border-l border-white/10 flex items-center gap-2 text-[8px] font-black text-blue-400/70 hover:text-blue-400 uppercase tracking-[0.2em] group transition-all"
+              >
+                <span className="drop-shadow-[0_0_5px_rgba(96,165,250,0.5)]">Next Step</span>
+                <div className="bg-blue-500/10 p-0.5 rounded-md group-hover:bg-blue-500/20 transition-all">
+                  <SkipForward size={10} className="text-blue-400" />
                 </div>
-                <div className="flex items-center gap-4 bg-black/40 p-1 rounded border border-white/5">
-                   <button onClick={() => setLookAmount(prev => Math.max(0, prev - 1))} className="w-8 h-8 flex items-center justify-center hover:bg-white/5 text-white/40 hover:text-white">-</button>
-                   <input 
-                     type="number" 
-                     value={lookAmount || ''} 
-                     onChange={(e) => {
-                       const val = e.target.value;
-                       setLookAmount(val === '' ? 0 : parseInt(val));
-                     }}
-                     className="flex-1 bg-transparent text-center text-white font-black outline-none focus:text-blue-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                     placeholder="0"
-                   />
-                   <button onClick={() => setLookAmount(prev => prev + 1)} className="w-8 h-8 flex items-center justify-center hover:bg-white/5 text-white/40 hover:text-white">+</button>
-                </div>
-                <div className="flex gap-2 pt-2">
-                   <button onClick={() => setIsInspectingDeck(null)} className="flex-1 py-2 text-[10px] font-black uppercase tracking-widest text-white/40 hover:bg-white/5 transition-all">Cancel</button>
-                   <button 
-                     onClick={() => {
-                       if (lookAmount > 0) {
-                         setViewingZone({ 
-                           zone: `${isInspectingDeck.pid}_mainDeck` as ZoneName, 
-                           mode: isInspectingDeck.mode, 
-                           amount: lookAmount 
-                         });
-                       }
-                       setIsInspectingDeck(null);
-                     }}
-                     className="flex-1 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-[0_0_15px_rgba(37,99,235,0.4)]"
-                   >
-                     Confirm
-                   </button>
-                </div>
-             </div>
+              </button>
+            </div>
+          </div>
+
+          {renderBoard("p1", false)}
+          {renderHandOverlay("p2", true)}
+          {renderHandOverlay("p1", false)}
+        </main>
+
+        <DragOverlay dropAnimation={{ duration: 150 }} zIndex={1000}>
+          {activeCard ? <Card card={activeCard} isOverlay /> : null}
+        </DragOverlay>
+
+        {contextMenu && (
+          <div
+            className="fixed z-[1100] bg-[#090c12]/98 backdrop-blur-xl border border-white/10 p-0 shadow-4xl min-w-[150px]"
+            style={{ left: Math.min(contextMenu.x, window.innerWidth - 160), top: Math.min(contextMenu.y, window.innerHeight - 150) }}
+          >
+            <div className="text-[8px] text-white/20 uppercase font-black px-5 py-3 border-b border-white/5 tracking-widest">Options</div>
+            {contextMenu.zone.includes("manaZone") && (
+              <button
+                onClick={() => { toggleTapped(contextMenu.card.id); setContextMenu(null); }}
+                className="w-full px-5 py-4 hover:bg-emerald-600/10 text-white text-[10px] font-black text-left uppercase tracking-widest"
+              >
+                Tap / Untap
+              </button>
+            )}
+            {contextMenu.zone.includes("shields") && (
+              <div className="flex flex-col">
+                <button
+                  onClick={() => { setViewingZone({ zone: contextMenu.zone, mode: "private" }); setContextMenu(null); }}
+                  className="px-5 py-4 hover:bg-amber-600/10 text-white text-[10px] font-black text-left uppercase tracking-widest"
+                >
+                  Break (View)
+                </button>
+                <button
+                  onClick={() => { toggleFace(contextMenu.card.id); setContextMenu(null); }}
+                  className="px-5 py-4 hover:bg-white/5 text-white text-[10px] font-black text-left uppercase tracking-widest border-t border-white/5"
+                >
+                  Reveal / Hide
+                </button>
+              </div>
+            )}
           </div>
         )}
 
-        <main className="flex-1 flex flex-col relative overflow-hidden">
-          {renderPlayerBoard('p2', true)}
-          
-          {/* Subtle separator line for boards */}
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.1)] to-transparent relative z-10 shrink-0 pointer-events-none" />
-          
-          {/* Floating Phase Ribbon (Ultra-Slim Glass HUD) */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[400] flex items-center h-[28px] bg-[rgba(0,0,0,0.3)] backdrop-blur-[5px] border border-[rgba(255,255,255,0.05)] rounded-[30px] px-4 shadow-[0_4px_20px_rgba(0,0,0,0.4)] pointer-events-auto">
-             {/* Player Indicator */}
-             <div className="text-[10px] font-black uppercase tracking-[0.2em] font-[Inter,sans-serif] mr-4 pr-4 border-r border-[rgba(255,255,255,0.1)] flex items-center h-full" style={{ color: currentPlayer === 'p1' ? '#60a5fa' : '#f87171', textShadow: `0 0 8px ${currentPlayer === 'p1' ? 'rgba(96,165,250,0.5)' : 'rgba(248,113,113,0.5)'}` }}>
-               {currentPlayer}
-             </div>
-             
-             {/* Phases */}
-             <div className="flex gap-4 font-[Inter,sans-serif] relative h-full items-center">
-                  {PHASES.map((phase) => {
-                    const isActive = currentPhase === phase;
-                    return (
-                      <div key={phase} className="relative flex items-center justify-center h-full cursor-pointer group" onClick={nextPhase}>
-                        {isActive && (
-                          <motion.div
-                            layoutId="activePhaseLine"
-                            className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,1)]"
-                            initial={false}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                          />
-                        )}
-                        <span className={cn(
-                          "relative z-10 text-[10px] uppercase tracking-[0.1em] transition-all duration-300 select-none", 
-                          isActive 
-                            ? "text-blue-200 font-bold drop-shadow-[0_0_6px_rgba(147,197,253,0.8)]" 
-                            : "text-white/40 group-hover:text-white/70"
-                        )}>{phase}</span>
-                      </div>
-                    );
-                  })}
-             </div>
-             
-             {/* Simple Next Button */}
-             <button onClick={nextPhase} className="ml-5 pl-4 border-l border-[rgba(255,255,255,0.1)] h-full flex items-center text-[10px] font-bold text-white/30 hover:text-white uppercase tracking-widest transition-all">Next ▶</button>
-          </div>
-
-          {renderPlayerBoard('p1', false)}
-        </main>
-
-        <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>{activeCard ? <Card card={activeCard} isOverlay /> : null}</DragOverlay>
-
         {placementMenu && (
-          <div 
+          <div
             ref={menuRef}
-            className="fixed z-[300] bg-slate-900 border border-white/20 p-1 shadow-2xl min-w-[140px] animate-in fade-in zoom-in duration-150"
-            style={{ 
-              left: Math.min(placementMenu.x, window.innerWidth - 150), 
-              top: Math.max(placementMenu.y, 10) 
-            }}
-            onClick={(e) => e.stopPropagation()}
+            className="fixed z-[1100] bg-black/90 backdrop-blur-md border border-white/5 shadow-3xl min-w-[140px]"
+            style={{ left: Math.min(placementMenu.x - 70, window.innerWidth - 150), top: Math.max(placementMenu.y - 120, 10) }}
+            onClick={e => e.stopPropagation()}
           >
-            <div className="text-[7px] text-white/20 uppercase font-black px-2 py-1 border-b border-white/5 mb-1">Play Card</div>
-            <div className="flex flex-col gap-0.5">
-              <button 
-                onClick={() => handlePlaceCard(`${placementMenu.card.owner}_attackZone` as ZoneName)} 
-                className="group w-full flex items-center gap-2 px-2 py-1.5 hover:bg-blue-600/50 text-white text-[9px] font-bold text-left uppercase tracking-tighter transition-all rounded"
-              >
-                <Swords size={11} className="text-blue-400 group-hover:text-white" />
-                Battle Zone
-              </button>
-              <button 
-                onClick={() => handlePlaceCard(`${placementMenu.card.owner}_manaZone` as ZoneName)} 
-                className="group w-full flex items-center gap-2 px-2 py-1.5 hover:bg-emerald-600/50 text-white text-[9px] font-bold text-left uppercase tracking-tighter transition-all rounded"
-              >
-                <Droplet size={11} className="text-emerald-400 group-hover:text-white" />
-                Add to Mana
-              </button>
-              <button 
-                onClick={() => handlePlaceCard(`${placementMenu.card.owner}_shields` as ZoneName)} 
-                className="group w-full flex items-center gap-2 px-2 py-1.5 hover:bg-amber-600/50 text-white text-[9px] font-bold text-left uppercase tracking-tighter transition-all rounded"
-              >
-                <Shield size={11} className="text-amber-400 group-hover:text-white" />
-                Set as Shield
-              </button>
-              <div className="h-px bg-white/5 my-0.5 mx-1" />
-              <button 
-                onClick={() => { moveCard(placementMenu.card.id, placementMenu.fromZone, `${placementMenu.card.owner}_cemetery` as ZoneName); setPlacementMenu(null); }} 
-                className="group w-full flex items-center gap-2 px-2 py-1.5 hover:bg-red-600/50 text-white text-[9px] font-bold text-left uppercase tracking-tighter transition-all rounded"
-              >
-                <X size={11} className="text-red-400 group-hover:text-white" />
-                Discard
-              </button>
+            <div className="flex flex-col">
+              <button onClick={() => handlePlaceCard(`${placementMenu.card.owner}_attackZone` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Battle Zone</button>
+              <button onClick={() => handlePlaceCard(`${placementMenu.card.owner}_manaZone` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Add to Mana</button>
+              <button onClick={() => handlePlaceCard(`${placementMenu.card.owner}_shields` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Set Shield</button>
+              <button onClick={() => { moveCard(placementMenu.card.id, placementMenu.fromZone, `${placementMenu.card.owner}_gZone` as ZoneName); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-purple-900/40 text-purple-100 text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500" /> To G Zone</button>
+              <button onClick={() => { moveCard(placementMenu.card.id, placementMenu.fromZone, `${placementMenu.card.owner}_cemetery` as ZoneName); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-red-900/40 text-red-100 text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Discard</button>
             </div>
           </div>
         )}
 
         {viewingZone && (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in fade-in duration-300">
-            <div className="relative bg-slate-900/60 backdrop-blur-xl border border-white/20 shadow-2xl max-w-full max-h-[90vh] flex flex-col p-4 animate-in zoom-in duration-200">
-              {/* Minimalist Floating Header */}
-              <div className="flex justify-between items-center mb-4 gap-8">
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/90">
-                    {viewingZone.mode === 'reveal' ? 'Public Revelation' : 'Private Inspection'}
-                  </span>
-                  <span className="text-[8px] text-white/30 uppercase font-bold tracking-widest leading-none">
-                    {viewingZone.mode === 'reveal' ? 'Shared Visibility' : 'Owner Only'}
-                  </span>
-                </div>
-                <button 
-                  onClick={() => setViewingZone(null)} 
-                  className="w-6 h-6 flex items-center justify-center hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all rounded-full border border-white/5"
-                  title="Close"
-                >
-                  <X size={12} />
-                </button>
+          <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[1200] flex items-end justify-center pointer-events-none">
+            <div className="relative flex flex-col items-center min-w-[300px] min-h-[160px] max-w-[90vw] bg-[#090c12]/90 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-[0_20px_60px_rgba(0,0,0,0.8)] pointer-events-auto">
+              <div className="flex gap-4 mb-3 w-full justify-between items-center border-b border-white/5 pb-2">
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/50">{viewingZone.mode === 'reveal' ? 'REVEALED' : viewingZone.zone.replace('_', ' ')}</span>
+                <button onClick={() => setViewingZone(null)} className="text-[9px] font-black uppercase bg-red-500/10 text-red-400 hover:bg-red-500/30 hover:text-red-300 px-3 py-1 rounded transition-colors"><X size={12} /></button>
               </div>
-
-              {/* Fit-Content Horizontal Card Tray */}
-              <div className="flex gap-3 overflow-x-auto overflow-y-hidden custom-scrollbar pb-2 px-1 min-h-[160px] md:min-h-[200px] items-center justify-center">
-              {zones[viewingZone.zone].length === 0 ? <div className="text-white/10 uppercase font-black text-2xl tracking-[0.5em] mt-20">Empty</div> : (() => {
-                  const itemsToRender = viewingZone.amount ? zones[viewingZone.zone].slice(0, viewingZone.amount) : zones[viewingZone.zone];
-                  // Asymmetric Visibility Logic:
-                  // If viewingZone.mode is 'private', only the owner (matching zone prefix) should see cards UP.
-                  // In sandbox pair-play, we can check if viewingZone.zone starts with currentPlayer for strict enforcement,
-                  // but here we follow the instruction: "Dueño ve UP, Oponente ve BACK".
-                  const isOwner = viewingZone.zone.startsWith(currentPlayer);
-                  
-                  return itemsToRender.map(id => (
-                    <div key={id} className="hover:z-10 transition-transform hover:scale-110">
-                      <Card 
-                        card={{ 
-                          ...cards[id], 
-                          position: 'vertical', 
-                          face: (viewingZone.mode === 'private') 
-                            ? (isOwner ? 'up' : 'down') 
-                            : (viewingZone.mode === 'reveal' ? 'up' : cards[id].face) 
-                        }} 
-                        zone={viewingZone.zone} 
-                        onHover={handleCardHover} 
-                        onClick={handleCardClick} 
+              <div className="flex gap-2.5 overflow-x-auto p-1 items-start justify-center w-full custom-scrollbar-thin max-w-full">
+                {zones[viewingZone.zone].length === 0 ? (
+                  <div className="opacity-10 font-black text-2xl uppercase tracking-[0.5em] py-4 px-10">Empty</div>
+                ) : (
+                  zones[viewingZone.zone].slice(0, viewingZone.amount).map(id => (
+                    <div key={id} className="hover:scale-105 hover:-translate-y-2 transition-all duration-300 shrink-0 w-14 md:w-16 drop-shadow-xl cursor-pointer">
+                      <Card
+                        card={{
+                          ...cards[id],
+                          face: (viewingZone.mode === 'private' && !viewingZone.zone.startsWith(currentPlayer) ? 'down' : 'up'),
+                          position: 'vertical'
+                        }}
+                        zone={viewingZone.zone}
+                        onHover={handleCardHover}
+                        onLeave={() => handleCardHover(null)}
+                        onClick={handleCardClick}
                       />
                     </div>
-                  ));
-                })()}
+                  ))
+                )}
               </div>
             </div>
-          </div>
-        )}
-
-        {contextMenu && (
-          <div className="fixed z-[300] bg-slate-900 border border-white/20 p-1 shadow-2xl min-w-[100px]" style={{ left: Math.min(contextMenu.x, window.innerWidth - 110), top: Math.min(contextMenu.y, window.innerHeight - 80) }} onClick={(e) => e.stopPropagation()}>
-            <div className="text-[7px] text-white/20 uppercase font-black px-2 py-1 border-b border-white/5 mb-1">Actions</div>
-            {contextMenu.zone.includes('manaZone') && <button onClick={() => { toggleTapped(contextMenu.card.id); setContextMenu(null); }} className="w-full px-2 py-1.5 hover:bg-white/5 text-white text-[9px] font-bold text-left uppercase tracking-tighter">Tap / Untap</button>}
-            {contextMenu.zone.includes('shields') && <div className="flex flex-col"><button onClick={() => { setViewingZone({ zone: contextMenu.zone, mode: 'private' }); setContextMenu(null); }} className="px-2 py-1.5 hover:bg-white/5 text-white text-[9px] font-bold text-left uppercase tracking-tighter border-b border-white/5">Break (View)</button><button onClick={() => { toggleFace(contextMenu.card.id); setContextMenu(null); }} className="px-2 py-1.5 hover:bg-white/5 text-white text-[9px] font-bold text-left uppercase tracking-tighter">Reveal / Hide</button></div>}
           </div>
         )}
 
         {deckMenu && (
-          <div 
-            ref={menuRef} 
-            className="fixed z-[300] bg-slate-900 border border-white/20 p-1 shadow-2xl w-44 animate-in fade-in slide-in-from-bottom-2 duration-200" 
-            style={{ 
-              left: Math.min(deckMenu.x, window.innerWidth - 180), 
-              top: Math.max(deckMenu.y - 220, 10),
-              maxHeight: '320px',
-              display: 'flex',
-              flexDirection: 'column'
-            }} 
-            onClick={(e) => e.stopPropagation()}
+          <div
+            ref={menuRef}
+            className="fixed z-[1100] bg-[#090c12]/98 backdrop-blur-xl border border-white/10 shadow-4xl w-44 flex flex-col p-0 animate-in fade-in slide-in-from-bottom-4 duration-400 max-h-[45vh] overflow-hidden"
+            style={{
+              left: Math.min(deckMenu.x - 85, window.innerWidth - 180),
+              top: Math.max(10, Math.min(deckMenu.y - 180, window.innerHeight - 250))
+            }}
           >
-            <div className="shrink-0 text-[8px] text-white/30 uppercase font-black px-2 py-2 flex justify-between items-center border-b border-white/5 mb-1 bg-white/5">
-              <span>Deck Actions</span>
-              <div className="flex items-center gap-1.5">
-                <Layers size={10} />
-                <span className="text-white">{zones[`${deckMenu.pid}_mainDeck`].length}</span>
-              </div>
+            <div className="px-3 py-2 flex justify-between items-center border-b border-white/10 bg-white/5">
+              <span className="text-[8px] text-white font-black uppercase tracking-[0.3em]">Library</span>
+              <span className="bg-white/10 px-2 py-0.5 rounded tabular-nums text-white text-[9px] font-bold">{zones[`${deckMenu.pid}_mainDeck`].length}</span>
             </div>
-            <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col gap-0.5 p-1 max-h-[250px]">
-              <div className="flex items-center justify-between hover:bg-blue-600/20 transition-all rounded px-1">
-                <button onClick={() => { drawCards(deckMenu.pid, drawAmount[deckMenu.pid]); setDeckMenu(null); }} className="group flex-1 flex items-center gap-2 py-2.5 px-1 text-[10px] text-white font-bold uppercase">
-                  <ArrowDownCircle size={12} className="text-blue-400 group-hover:text-white" /> 
-                  Draw {drawAmount[deckMenu.pid]}
-                </button>
-                <div className="flex gap-1 items-center bg-black/40 rounded border border-white/5 px-1">
-                   <button onClick={(e) => { e.stopPropagation(); setDrawAmount(prev => ({ ...prev, [deckMenu.pid]: Math.max(1, prev[deckMenu.pid] - 1) }))}} className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white">-</button>
-                   <button onClick={(e) => { e.stopPropagation(); setDrawAmount(prev => ({ ...prev, [deckMenu.pid]: prev[deckMenu.pid] + 1 }))}} className="w-5 h-5 flex items-center justify-center text-white/40 hover:text-white">+</button>
-                </div>
+            <div className="flex flex-col overflow-y-auto custom-scrollbar-thin">
+              <div onClick={() => execDraw(deckMenu.pid)} className="flex items-center gap-2 px-3 py-2 hover:bg-blue-600/10 group transition-all cursor-pointer">
+                <ArrowDownCircle size={12} className="text-blue-500/60" /><span className="text-[8px] text-white font-black uppercase tracking-widest flex-1">Draw</span>
+                <input type="number" value={drawAmt[deckMenu.pid] || ""} onClick={e => e.stopPropagation()} onChange={e => setDrawAmt(p => ({ ...p, [deckMenu.pid]: parseInt(e.target.value) || 0 }))} onKeyDown={e => { if (e.key === "Enter") execDraw(deckMenu.pid); }} className={cn(numInputCls, "w-8 h-5 text-[9px]")} />
+                <button onClick={e => { e.stopPropagation(); execDraw(deckMenu.pid); }} className="text-[8px] text-blue-400 font-black px-2 ml-1">OK</button>
               </div>
-              <button onClick={() => { topToMana(deckMenu.pid); setDeckMenu(null); }} className="group flex items-center gap-2 px-2 py-2.5 hover:bg-emerald-600/50 text-[10px] text-white font-bold uppercase transition-all rounded">
-                <Droplet size={12} className="text-emerald-400 group-hover:text-white" /> Charge Mana
-              </button>
-              <button onClick={() => { topToShield(deckMenu.pid); setDeckMenu(null); }} className="group flex items-center gap-2 px-2 py-2.5 hover:bg-amber-600/50 text-[10px] text-white font-bold uppercase transition-all rounded">
-                <Shield size={12} className="text-amber-400 group-hover:text-white" /> Add Shield
-              </button>
-              
-              <div className="h-px bg-white/10 my-1 mx-2 shrink-0" />
-              
-              <button onClick={() => { shuffleDeck(deckMenu.pid); setDeckMenu(null); }} className="group flex items-center gap-2 px-2 py-2.5 hover:bg-white/10 text-[10px] text-white/60 font-bold uppercase transition-all rounded">
-                <Shuffle size={12} /> Shuffle Deck
-              </button>
-              <button 
-                onClick={() => { setIsInspectingDeck({ pid: deckMenu.pid, mode: 'private' }); setDeckMenu(null); }} 
-                className="group flex items-center gap-2 px-2 py-2.5 hover:bg-blue-600/30 text-[10px] text-blue-400 font-bold uppercase transition-all rounded"
-              >
-                <Search size={12} className="group-hover:text-blue-300" /> Look Top X
-              </button>
-              <button 
-                onClick={() => { setIsInspectingDeck({ pid: deckMenu.pid, mode: 'reveal' }); setDeckMenu(null); }} 
-                className="group flex items-center gap-2 px-2 py-2.5 hover:bg-amber-600/30 text-[10px] text-amber-400 font-bold uppercase transition-all rounded"
-              >
-                <RefreshCcw size={12} className="group-hover:text-amber-300" /> Reveal Top X
-              </button>
-              <button onClick={() => { topToGraveyard(deckMenu.pid, drawAmount[deckMenu.pid]); setDeckMenu(null); }} className="group flex items-center gap-2 px-2 py-2.5 hover:bg-red-600/30 text-[10px] text-red-400 font-bold uppercase transition-all rounded">
-                <X size={12} /> To Grave ({drawAmount[deckMenu.pid]})
-              </button>
-              <button onClick={() => { setViewingZone({ zone: `${deckMenu.pid}_mainDeck` as ZoneName, mode: 'full' }); setDeckMenu(null); }} className="group flex items-center gap-2 px-2 py-2.5 hover:bg-white/10 text-[10px] text-white/60 font-bold uppercase transition-all rounded">
-                <Eye size={12} /> View Deck
-              </button>
+              <div onClick={() => execMana(deckMenu.pid)} className="flex items-center gap-2 px-3 py-2 hover:bg-emerald-600/10 group transition-all cursor-pointer">
+                <Droplet size={12} className="text-emerald-500/60" /><span className="text-[8px] text-white font-black uppercase tracking-widest flex-1">Mana X</span>
+                <input type="number" value={manaAmt[deckMenu.pid] || ""} onClick={e => e.stopPropagation()} onChange={e => setManaAmt(p => ({ ...p, [deckMenu.pid]: parseInt(e.target.value) || 0 }))} onKeyDown={e => { if (e.key === "Enter") execMana(deckMenu.pid); }} className={cn(numInputCls, "w-8 h-5 text-[9px]")} />
+                <button onClick={e => { e.stopPropagation(); execMana(deckMenu.pid); }} className="text-[8px] text-emerald-400 font-black px-2 ml-1">OK</button>
+              </div>
+              <div onClick={() => execShield(deckMenu.pid)} className="flex items-center gap-2 px-3 py-2 hover:bg-amber-600/10 group transition-all border-b border-white/5 cursor-pointer">
+                <Shield size={12} className="text-amber-500/60" /><span className="text-[8px] text-white/80 font-black uppercase tracking-widest flex-1">Shield X</span>
+                <input type="number" value={shieldAmt[deckMenu.pid] || ""} onClick={e => e.stopPropagation()} onChange={e => setShieldAmt(p => ({ ...p, [deckMenu.pid]: parseInt(e.target.value) || 0 }))} onKeyDown={e => { if (e.key === "Enter") execShield(deckMenu.pid); }} className={cn(numInputCls, "w-8 h-5 text-[9px]")} />
+                <button onClick={e => { e.stopPropagation(); execShield(deckMenu.pid); }} className="text-[8px] text-amber-400 font-black px-2 ml-1">OK</button>
+              </div>
+              <button onClick={() => { shuffleDeck(deckMenu.pid); setDeckMenu(null); }} className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-[8px] text-white/40 font-black uppercase tracking-widest transition-all"><Shuffle size={12} /> Shuffle Deck</button>
+              <div onClick={() => execLook(deckMenu.pid)} className="flex items-center gap-2 px-3 py-2 hover:bg-blue-600/10 group transition-all border-t border-white/5 cursor-pointer">
+                <Search size={12} className="text-blue-500/60" /><span className="text-[8px] text-blue-400/80 font-black uppercase tracking-widest flex-1">Look X</span>
+                <input type="number" value={lookAmt[deckMenu.pid] || ""} onClick={e => e.stopPropagation()} onChange={e => setLookAmt(p => ({ ...p, [deckMenu.pid]: parseInt(e.target.value) || 0 }))} onKeyDown={e => { if (e.key === "Enter") execLook(deckMenu.pid); }} className={cn(numInputCls, "w-8 h-5 text-[9px]")} />
+                <button onClick={e => { e.stopPropagation(); execLook(deckMenu.pid); }} className="text-[8px] text-blue-400 font-black px-2 ml-1">OK</button>
+              </div>
+              <div onClick={() => execReveal(deckMenu.pid)} className="flex items-center gap-2 px-3 py-2 hover:bg-orange-600/10 group transition-all cursor-pointer">
+                <Eye size={12} className="text-orange-500/60" /><span className="text-[8px] text-orange-400/80 font-black uppercase tracking-widest flex-1">Reveal X</span>
+                <input type="number" value={revealAmt[deckMenu.pid] || ""} onClick={e => e.stopPropagation()} onChange={e => setRevealAmt(p => ({ ...p, [deckMenu.pid]: parseInt(e.target.value) || 0 }))} onKeyDown={e => { if (e.key === "Enter") execReveal(deckMenu.pid); }} className={cn(numInputCls, "w-8 h-5 text-[9px]")} />
+                <button onClick={e => { e.stopPropagation(); execReveal(deckMenu.pid); }} className="text-[8px] text-orange-400 font-black px-2 ml-1">OK</button>
+              </div>
+              <div onClick={() => execGrave(deckMenu.pid)} className="flex items-center gap-2 px-3 py-2 hover:bg-red-600/10 group transition-all border-t border-white/5 cursor-pointer">
+                <X size={12} className="text-red-500/60" /><span className="text-[8px] text-red-500/80 font-black uppercase tracking-widest flex-1">To Grave</span>
+                <input type="number" value={graveAmt[deckMenu.pid] || ""} onClick={e => e.stopPropagation()} onChange={e => setGraveAmt(p => ({ ...p, [deckMenu.pid]: parseInt(e.target.value) || 0 }))} onKeyDown={e => { if (e.key === "Enter") execGrave(deckMenu.pid); }} className={cn(numInputCls, "w-8 h-5 text-[9px]")} />
+                <button onClick={e => { e.stopPropagation(); execGrave(deckMenu.pid); }} className="text-[8px] text-red-400 font-black px-2 ml-1">OK</button>
+              </div>
+              <button onClick={() => { setViewingZone({ zone: `${deckMenu.pid}_mainDeck` as ZoneName, mode: "full" }); setDeckMenu(null); }} className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-[8px] text-white/20 font-black uppercase tracking-widest transition-all border-t border-white/5"><Eye size={12} /> View All</button>
             </div>
           </div>
         )}
