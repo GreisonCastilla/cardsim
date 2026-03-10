@@ -13,9 +13,11 @@ interface CardProps {
   onLeave?: () => void;
   onClick?: (card: GameCard, event: React.MouseEvent) => void;
   onDoubleClick?: (card: GameCard, event: React.MouseEvent) => void;
+  shieldNumber?: number;
+  showShieldHud?: boolean;
 }
 
-export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClick, onDoubleClick }: CardProps) {
+export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClick, onDoubleClick, shieldNumber, showShieldHud }: CardProps) {
   const { cards } = useGameStore();
 
   const dragId = isStatic || isOverlay ? `${card.id}-preview` : card.id;
@@ -48,10 +50,10 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClic
   const isTapped = card.position === 'horizontal';
   const isMano = zone?.includes('hand');
 
-  const shadowClass = isDragging 
-    ? "shadow-[0_20px_40px_rgba(0,0,0,0.8)] scale-110" 
-    : isMano 
-      ? "shadow-[0_10px_20px_rgba(0,0,0,0.6)]" 
+  const shadowClass = isDragging
+    ? "shadow-[0_20px_40px_rgba(0,0,0,0.8)] scale-110"
+    : isMano
+      ? "shadow-[0_10px_20px_rgba(0,0,0,0.6)]"
       : "shadow-[0_4px_8px_rgba(0,0,0,0.4)]";
 
   return (
@@ -63,7 +65,14 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClic
         </div>
       )}
 
-      {/* Linked cards (EXLife) (Rendered as a stack underneath) */}
+      {/* Shield Number Tab (Visible only when specifically requested, e.g. in Break window) */}
+      {shieldNumber !== undefined && showShieldHud && zone?.includes('shields') && (
+        <div className="absolute -top-4 md:-top-5 right-0.5 z-[70] bg-amber-500 border border-amber-300 text-slate-900 text-[7px] md:text-[9px] font-black px-2 py-0.5 rounded shadow-lg pointer-events-none flex items-center justify-center whitespace-nowrap">
+          Escudo #{shieldNumber}
+        </div>
+      )}
+
+      {/* Shield Number on the Back */}
       {card.linkedCardIds && card.linkedCardIds.length > 0 && (
         <div className="absolute inset-0 pointer-events-none">
           {card.linkedCardIds.map((id, index) => {
@@ -132,9 +141,18 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClic
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-[#1a237e] border-2 border-amber-400/30 rounded-sm shadow-inner overflow-hidden relative">
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:10px_10px]" />
-            <div className="w-6 h-6 md:w-8 md:h-8 border-2 border-amber-500/40 flex items-center justify-center rotate-45 bg-[#283593] shadow-xl">
+            <div className="w-6 h-6 md:w-8 md:h-8 border-2 border-amber-500/40 flex items-center justify-center rotate-45 bg-[#283593] shadow-xl relative z-10">
               <div className="w-2 h-2 bg-amber-500/60 -rotate-45 shadow-[0_0_10px_rgba(255,191,0,0.5)]"></div>
             </div>
+            
+            {/* Shield Number on the Back */}
+            {shieldNumber !== undefined && zone?.includes('shields') && (
+              <div className="absolute bottom-1 right-1.5 flex items-center justify-center pointer-events-none z-20">
+                <span className="text-white/95 font-black text-lg md:text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                  {shieldNumber}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

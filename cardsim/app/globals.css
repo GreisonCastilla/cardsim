@@ -75,9 +75,11 @@ body {
   &::-webkit-scrollbar {
     width: 3px;
   }
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
+
   &::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
@@ -90,6 +92,7 @@ body {
     height: 0px;
     background: transparent;
   }
+
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
