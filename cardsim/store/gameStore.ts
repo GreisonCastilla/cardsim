@@ -20,6 +20,7 @@ export interface GameCard {
     owner: PlayerId;
     boardX?: number | null;
     boardY?: number | null;
+    linkedCardIds?: string[];
 }
 
 // Flat structure helps DndKit.
@@ -52,6 +53,8 @@ interface GameState {
     nextPhase: () => void;
     endTurn: (playerId: PlayerId) => void; // Keep for fallback, or maybe remove later
     initializeGame: () => void;
+    linkCard: (childId: string, parentId: string, fromZone: ZoneName) => void;
+    unlinkCard: (childId: string, parentId: string, toZone: ZoneName, newIndex?: number) => void;
 }
 
 const generateDeck = (count: number, prefix: string, owner: PlayerId): GameCard[] => {
@@ -248,7 +251,7 @@ export const useGameStore = create<GameState>((set) => ({
         const attackKey = `${playerId}_attackZone` as ZoneName;
         const manaKey = `${playerId}_manaZone` as ZoneName;
         const newCards = { ...state.cards };
-        
+
         state.zones[attackKey].forEach(id => {
             newCards[id] = { ...newCards[id], position: 'vertical' };
         });
@@ -308,6 +311,51 @@ export const useGameStore = create<GameState>((set) => ({
         };
     }),
 
+    linkCard: (childId, parentId, fromZone) => set((state) => {
+        if (childId === parentId) return state; // No card should link to itself
+        const fromArray = [...state.zones[fromZone]];
+        const index = fromArray.indexOf(childId);
+        if (index === -1) return state;
+
+        fromArray.splice(index, 1);
+
+        const parentCard = { ...state.cards[parentId] };
+        const childCard = { ...state.cards[childId], face: 'down' as CardFace, boardX: null, boardY: null };
+
+        const linkedIds = [...(parentCard.linkedCardIds || [])];
+        if (!linkedIds.includes(childId)) {
+            linkedIds.push(childId);
+        }
+        parentCard.linkedCardIds = linkedIds;
+
+        return {
+            zones: { ...state.zones, [fromZone]: fromArray },
+            cards: { ...state.cards, [childId]: childCard, [parentId]: parentCard }
+        };
+    }),
+
+    unlinkCard: (childId, parentId, toZone, newIndex) => set((state) => {
+        const parentCard = { ...state.cards[parentId] };
+        if (!parentCard.linkedCardIds?.includes(childId)) return state;
+
+        const linkedIds = parentCard.linkedCardIds.filter(id => id !== childId);
+        parentCard.linkedCardIds = linkedIds;
+
+        const childCard = { ...state.cards[childId], face: 'up' as CardFace };
+        const toArray = [...state.zones[toZone]];
+
+        if (newIndex !== undefined) {
+            toArray.splice(newIndex, 0, childId);
+        } else {
+            toArray.push(childId);
+        }
+
+        return {
+            zones: { ...state.zones, [toZone]: toArray },
+            cards: { ...state.cards, [childId]: childCard, [parentId]: parentCard }
+        };
+    }),
+
     endTurn: (playerId) => set((state) => {
         const attackKey = `${playerId}_attackZone` as ZoneName;
         const manaKey = `${playerId}_manaZone` as ZoneName;
@@ -331,8 +379,17 @@ export const useGameStore = create<GameState>((set) => ({
             const hyper = generateDeck(8, 'hyper', owner);
             const gzoneDeck = generateDeck(4, 'gZone', owner);
 
-            gzoneDeck.forEach(c => c.face = 'down');
-            hyper.forEach(c => c.face = 'up');
+            gzoneDeck.forEach(c => {
+                c.face = 'down';
+                c.linkedCardIds = [];
+            });
+            hyper.forEach(c => {
+                c.face = 'up';
+                c.linkedCardIds = [];
+            });
+            main.forEach(c => {
+                c.linkedCardIds = [];
+            });
 
             const allPcards = [...main, ...hyper, ...gzoneDeck];
 
