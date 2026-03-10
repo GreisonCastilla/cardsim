@@ -17,8 +17,9 @@ interface CardProps {
 }
 
 export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClick, onDoubleClick }: CardProps) {
+  const dragId = isStatic || isOverlay ? `${card.id}-preview` : card.id;
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: card.id,
+    id: dragId,
     data: { card, fromZone: zone },
     disabled: isStatic || isOverlay,
   });

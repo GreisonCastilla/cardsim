@@ -172,7 +172,7 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
       previewTimer.current = null;
     }
 
-    if (!card) {
+    if (isDragging.current || !card) {
       setPreviewCard(null);
       return;
     }
@@ -188,6 +188,12 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
   }, []);
 
   const handleDragStart = (e: DragStartEvent) => {
+    setPreviewCard(null);
+    if (previewTimer.current) {
+      clearTimeout(previewTimer.current);
+      previewTimer.current = null;
+    }
+    
     const card = e.active.data.current?.card as GameCard | undefined;
     if (card) {
       setActiveCard(card);
@@ -201,12 +207,11 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
     setTimeout(() => { isDragging.current = false; }, 50);
 
     const cardId = active.id as string;
-    let fromZone = active.data.current?.fromZone as ZoneName | undefined;
-
-    if (!fromZone) {
-      for (const [z, ids] of Object.entries(zones)) {
-        if ((ids as string[]).includes(cardId)) { fromZone = z as ZoneName; break; }
-      }
+    
+    // Ensure we always have the freshest fromZone directly from state
+    let fromZone: ZoneName | undefined;
+    for (const [z, ids] of Object.entries(zones)) {
+      if ((ids as string[]).includes(cardId)) { fromZone = z as ZoneName; break; }
     }
 
     const toZone = over?.id as ZoneName | undefined;
@@ -217,13 +222,14 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
       let bx: number | null | undefined = null; // Default a null (flujo flex normal)
       let by: number | null | undefined = null;
       
-      // Permitir posicionamiento libre ÚNICAMENTE si el destino es la Attack Zone (Tablero principal)
-      if (activeRect && overRect && toZone.includes('attackZone')) {
+      // Permitir posicionamiento libre ÚNICAMENTE en la Attack Zone (Tablero principal)
+      const isBoardZone = toZone.includes('attackZone');
+      if (activeRect && overRect && isBoardZone) {
          const centerX = activeRect.left + activeRect.width / 2;
          const centerY = activeRect.top + activeRect.height / 2;
          
-         const wrapperWidth = 64; // w-16 = 4rem = 64px
-         const wrapperHeight = wrapperWidth * (4/3); // 85.33px
+         const wrapperWidth = 64; // w-16 = 64px
+         const wrapperHeight = wrapperWidth * (4/3);
 
          const isFlipped = toZone.startsWith('p2');
          if (isFlipped) {
@@ -237,6 +243,11 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
 
       moveCard(cardId, fromZone, toZone, undefined, bx, by);
     }
+  };
+
+  const handleDragCancel = () => {
+    setActiveCard(null);
+    setTimeout(() => { isDragging.current = false; }, 50);
   };
 
   const handleCardClick = (card: GameCard, event?: React.MouseEvent) => {
@@ -602,6 +613,7 @@ onDoubleClick={handleCardDoubleClick}
       measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <div className="flex h-screen w-full bg-[#0f172a] text-slate-400 overflow-hidden font-sans select-none" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)' }}>
 
