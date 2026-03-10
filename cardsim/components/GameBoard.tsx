@@ -215,33 +215,8 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
     }
 
     const toZone = over?.id as ZoneName | undefined;
-    if (fromZone && toZone) {
-      const activeRect = active.rect.current.translated;
-      const overRect = over?.rect;
-      
-      let bx: number | null | undefined = null; // Default a null (flujo flex normal)
-      let by: number | null | undefined = null;
-      
-      // Permitir posicionamiento libre ÚNICAMENTE en la Attack Zone (Tablero principal)
-      const isBoardZone = toZone.includes('attackZone');
-      if (activeRect && overRect && isBoardZone) {
-         const centerX = activeRect.left + activeRect.width / 2;
-         const centerY = activeRect.top + activeRect.height / 2;
-         
-         const wrapperWidth = 64; // w-16 = 64px
-         const wrapperHeight = wrapperWidth * (4/3);
-
-         const isFlipped = toZone.startsWith('p2');
-         if (isFlipped) {
-           bx = overRect.right - (centerX + wrapperWidth / 2);
-           by = overRect.bottom - (centerY + wrapperHeight / 2);
-         } else {
-           bx = (centerX - wrapperWidth / 2) - overRect.left;
-           by = (centerY - wrapperHeight / 2) - overRect.top;
-         }
-      }
-
-      moveCard(cardId, fromZone, toZone, undefined, bx, by);
+    if (fromZone && toZone && fromZone !== toZone) {
+      moveCard(cardId, fromZone, toZone);
     }
   };
 
@@ -415,21 +390,19 @@ onDoubleClick={handleCardDoubleClick}
             className="w-full h-full"
             count={zones[`${pid}_attackZone`].length}
           >
-            <div className="flex flex-wrap content-start p-6 pt-10 gap-3 w-full h-full overflow-y-auto custom-scrollbar relative">
+            <div className="flex flex-wrap justify-center content-center items-center p-4 gap-3 w-full h-full overflow-y-auto custom-scrollbar relative">
               {zones[`${pid}_attackZone`].map(id => {
                 const c = cards[id];
-                const hasPos = c.boardX != null && c.boardY != null;
                 return (
                 <div key={id} 
-                     className={cn("shrink-0 w-16 transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 hover:z-50", rot, hasPos ? "absolute" : "relative")}
-                     style={hasPos ? { left: c.boardX as number, top: c.boardY as number, margin: 0 } : {}}>
+                     className={cn("shrink-0 w-16 transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 hover:z-50", rot, "relative")}>
                   <Card
                     card={c}
                     zone={`${pid}_attackZone` as ZoneName}
                     onHover={(cardEvt) => handleCardHover(cardEvt, `${pid}_attackZone` as ZoneName)}
                     onLeave={() => handleCardHover(null)}
                     onClick={handleCardClick}
-onDoubleClick={handleCardDoubleClick}
+                    onDoubleClick={handleCardDoubleClick}
                   />
                 </div>
               )})}
@@ -456,10 +429,9 @@ onDoubleClick={handleCardDoubleClick}
             manaCards={zones[`${pid}_manaZone`]}
             cardsData={cards}
           >
-            <div className="absolute inset-0 z-10 flex flex-nowrap items-start justify-start px-6 pt-1 pb-2 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar transition-all duration-300">
+            <div className="absolute inset-0 z-10 flex flex-wrap content-start items-start justify-start px-6 pt-2 pb-2 gap-2 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300">
               {zones[`${pid}_manaZone`].map((id) => {
                 const c = cards[id];
-                const hasPos = c.boardX != null && c.boardY != null;
                 return (
                   <div
                     key={id}
@@ -467,9 +439,8 @@ onDoubleClick={handleCardDoubleClick}
                     className={cn(
                       "shrink-0 w-12 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:z-50 hover:-translate-y-1 group",
                       rot,
-                      hasPos ? "absolute" : "relative"
+                      "relative"
                     )}
-                    style={hasPos ? { left: c.boardX as number, top: c.boardY as number, margin: 0 } : {}}
                   >
                     <Card
                       card={c}
@@ -477,7 +448,7 @@ onDoubleClick={handleCardDoubleClick}
                       onHover={(cardEvt) => handleCardHover(cardEvt, `${pid}_manaZone` as ZoneName)}
                       onLeave={() => handleCardHover(null)}
                       onClick={handleCardClick}
-onDoubleClick={handleCardDoubleClick}
+                      onDoubleClick={handleCardDoubleClick}
                     />
                   </div>
                 );
@@ -499,10 +470,9 @@ onDoubleClick={handleCardDoubleClick}
             }}
             count={zones[`${pid}_shields`].length}
           >
-            <div className="absolute inset-0 z-10 flex flex-nowrap items-start justify-start px-6 pt-1 pb-2 gap-2 overflow-x-auto overflow-y-hidden custom-scrollbar transition-all duration-300">
+            <div className="absolute inset-0 z-10 flex flex-wrap content-start items-start justify-start px-6 pt-2 pb-2 gap-2 overflow-y-auto overflow-x-hidden custom-scrollbar transition-all duration-300">
               {zones[`${pid}_shields`].map((id) => {
                 const c = cards[id];
-                const hasPos = c.boardX != null && c.boardY != null;
                 return (
                   <div
                     key={id}
@@ -510,9 +480,8 @@ onDoubleClick={handleCardDoubleClick}
                     className={cn(
                       "shrink-0 w-12 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:z-50 hover:-translate-y-1 group",
                       rot,
-                      hasPos ? "absolute" : "relative"
+                      "relative"
                     )}
-                    style={hasPos ? { left: c.boardX as number, top: c.boardY as number, margin: 0 } : {}}
                   >
                     <Card
                       card={c}
@@ -520,7 +489,7 @@ onDoubleClick={handleCardDoubleClick}
                       onHover={(cardEvt) => handleCardHover(cardEvt, `${pid}_shields` as ZoneName)}
                       onLeave={() => handleCardHover(null)}
                       onClick={handleCardClick}
-onDoubleClick={handleCardDoubleClick}
+                      onDoubleClick={handleCardDoubleClick}
                     />
                   </div>
                 );
