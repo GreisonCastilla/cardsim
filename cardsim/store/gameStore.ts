@@ -18,6 +18,8 @@ export interface GameCard {
     position: CardPosition;
     face: CardFace;
     owner: PlayerId;
+    boardX?: number | null;
+    boardY?: number | null;
 }
 
 // Flat structure helps DndKit.
@@ -40,7 +42,7 @@ interface GameState {
 
     drawCards: (playerId: PlayerId, amount: number) => void;
     shuffleDeck: (playerId: PlayerId) => void;
-    moveCard: (cardId: string, fromZone: ZoneName, toZone: ZoneName, newIndex?: number) => void;
+    moveCard: (cardId: string, fromZone: ZoneName, toZone: ZoneName, newIndex?: number, boardX?: number | null, boardY?: number | null) => void;
     topToMana: (playerId: PlayerId) => void;
     topToShield: (playerId: PlayerId) => void;
     topToGraveyard: (playerId: PlayerId, amount: number) => void;
@@ -117,9 +119,10 @@ export const useGameStore = create<GameState>((set) => ({
         };
     }),
 
-    moveCard: (cardId, fromZone, toZone, newIndex) => set((state) => {
+    moveCard: (cardId, fromZone, toZone, newIndex, boardX, boardY) => set((state) => {
+        const isSameZone = fromZone === toZone;
         const fromArray = [...state.zones[fromZone]];
-        const toArray = [...state.zones[toZone]];
+        const toArray = isSameZone ? fromArray : [...state.zones[toZone]];
 
         const index = fromArray.indexOf(cardId);
         if (index === -1) return state;
@@ -136,7 +139,7 @@ export const useGameStore = create<GameState>((set) => ({
         const toZoneLower = toZone.toLowerCase();
 
         // Sandbox Adaptive Logic
-        if (toZoneLower.includes('shields') || toZoneLower.includes('maindeck') || toZoneLower.includes('gachi')) {
+        if (toZoneLower.includes('shields') || toZoneLower.includes('maindeck') || toZoneLower.includes('gzone')) {
             updatedCard.face = 'down';
         } else {
             updatedCard.face = 'up';
@@ -147,17 +150,26 @@ export const useGameStore = create<GameState>((set) => ({
         // If moving to mana, we keep its previous tapped state or reset? 
         // User says "si cae en Mana, permite girarla", implying it starts untaped or keeps state.
         // We'll reset to vertical for clarity unless it's being moved within battle zone (manual positioning).
-        if (fromZone !== toZone) {
+        if (!isSameZone) {
             updatedCard.position = 'vertical';
+        }
+
+        if (boardX !== undefined) updatedCard.boardX = boardX;
+        if (boardY !== undefined) updatedCard.boardY = boardY;
+
+        // Limpiar posicionamiento libre si vuelve a su origen, especialmente escudos/maná
+        // O si el usuario pide null explícitamente.
+        if (boardX === null) delete updatedCard.boardX;
+        if (boardY === null) delete updatedCard.boardY;
+
+        const newZones = { ...state.zones, [fromZone]: fromArray };
+        if (!isSameZone) {
+            newZones[toZone] = toArray;
         }
 
         return {
             cards: { ...state.cards, [cardId]: updatedCard },
-            zones: {
-                ...state.zones,
-                [fromZone]: fromArray,
-                [toZone]: toArray,
-            }
+            zones: newZones
         };
     }),
 

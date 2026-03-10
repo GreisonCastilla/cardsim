@@ -13,9 +13,10 @@ interface CardProps {
   onHover?: (card: GameCard) => void;
   onLeave?: () => void;
   onClick?: (card: GameCard, event: React.MouseEvent) => void;
+  onDoubleClick?: (card: GameCard, event: React.MouseEvent) => void;
 }
 
-export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClick }: CardProps) {
+export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClick, onDoubleClick }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: card.id,
     data: { card, fromZone: zone },
@@ -49,6 +50,7 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClic
       onMouseEnter={handleMouseEnter}
       onMouseLeave={() => onLeave && onLeave()}
       onClick={(e) => onClick && onClick(card, e)}
+      onDoubleClick={(e) => onDoubleClick && onDoubleClick(card, e)}
       className={cn(
         "relative transition-all duration-200 ease-out",
         !isStatic && "cursor-grab active:cursor-grabbing",
