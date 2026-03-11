@@ -51,6 +51,7 @@ interface GameState {
     toggleFace: (cardId: string) => void;
     untapAll: (playerId: PlayerId) => void;
     nextPhase: () => void;
+    setPhase: (phase: PhaseName) => void;
     endTurn: (playerId: PlayerId) => void; // Keep for fallback, or maybe remove later
     initializeGame: () => void;
     linkCard: (childId: string, parentId: string, fromZone: ZoneName) => void;
@@ -310,6 +311,10 @@ export const useGameStore = create<GameState>((set) => ({
             zones: newZones
         };
     }),
+
+    setPhase: (phase) => set(() => ({
+        currentPhase: phase
+    })),
 
     linkCard: (childId, parentId, fromZone) => set((state) => {
         if (childId === parentId) return state; // No card should link to itself

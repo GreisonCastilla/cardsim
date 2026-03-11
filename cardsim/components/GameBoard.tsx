@@ -93,6 +93,7 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
     currentPhase,
     currentPlayer,
     nextPhase,
+    setPhase,
     topToMana,
     topToShield,
     topToGraveyard,
@@ -484,7 +485,7 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
             className="w-full h-full"
             count={zones[`${pid}_attackZone`].length}
           >
-            <div className="flex flex-wrap justify-center content-center items-center p-4 gap-3 w-full h-full overflow-y-auto custom-scrollbar relative">
+            <div className="flex flex-wrap justify-center content-center items-center px-4 pt-10 pb-4 gap-3 w-full h-full overflow-y-auto custom-scrollbar relative">
               {zones[`${pid}_attackZone`].map(id => {
                 const c = cards[id];
                 const hasPos = c.boardX != null && c.boardY != null;
@@ -755,7 +756,7 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
               </div>
               <div className="flex items-center gap-2.5 px-2">
                 {PHASES.map((phase) => (
-                  <span key={phase} className={cn("text-[8px] font-bold uppercase tracking-widest", currentPhase === phase ? "text-white opacity-100 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]" : "text-slate-500 opacity-40")}>{phase}</span>
+                  <button key={phase} onClick={() => setPhase(phase)} className={cn("text-[8px] font-bold uppercase tracking-widest transition-all cursor-pointer hover:opacity-100 hover:text-white", currentPhase === phase ? "text-white opacity-100 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]" : "text-slate-500 opacity-40 hover:drop-shadow-[0_0_2px_rgba(255,255,255,0.4)]")}>{phase}</button>
                 ))}
               </div>
               <button
@@ -989,7 +990,9 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
                     <button onClick={() => { moveCard(currentCard.id, placementMenu.fromZone, `${currentCard.owner}_mainDeck` as ZoneName, 0); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-indigo-400" /> To Top Deck</button>
                     <button onClick={() => { moveCard(currentCard.id, placementMenu.fromZone, `${currentCard.owner}_mainDeck` as ZoneName); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-indigo-700" /> To Bottom Deck</button>
                     <button onClick={() => handlePlaceCard(`${currentCard.owner}_manaZone` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> To Mana</button>
-                    <button onClick={() => handlePlaceCard(`${currentCard.owner}_shields` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Set Shield</button>
+                    {!placementMenu.fromZone.includes('shields') && (
+                      <button onClick={() => handlePlaceCard(`${currentCard.owner}_shields` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Set Shield</button>
+                    )}
                     <button onClick={() => { moveCard(currentCard.id, placementMenu.fromZone, `${currentCard.owner}_cemetery` as ZoneName); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-red-900/40 text-red-100 text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> To GY (Grave)</button>
                     <button onClick={() => { moveCard(currentCard.id, placementMenu.fromZone, `${currentCard.owner}_hyperspatial` as ZoneName); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-blue-900/40 text-blue-100 text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-cyan-400" /> To Hyper</button>
                     <button onClick={() => { moveCard(currentCard.id, placementMenu.fromZone, `${currentCard.owner}_gZone` as ZoneName); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-purple-900/40 text-purple-100 text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500" /> To G Zone</button>

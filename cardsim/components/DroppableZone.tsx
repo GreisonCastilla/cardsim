@@ -39,11 +39,13 @@ export function DroppableZone({ id, title, children, className, horizontalScroll
     <div
       ref={setNodeRef}
       style={style}
+      onClick={compact && onView ? () => onView() : undefined}
       className={cn(
         "relative flex flex-col transition-all duration-500 rounded-sm border",
         compact
           ? "w-[60px] h-[84px] bg-[#ffffff08] border-white/20 backdrop-blur-[16px] shadow-[inset_0_0_15px_rgba(255,255,255,0.03),0_0_10px_rgba(0,0,0,0.5)]"
           : "bg-transparent border-transparent",
+        compact && onView ? "cursor-pointer" : "",
         glowClass,
         className
       )}
