@@ -44,7 +44,10 @@ import {
   ShieldCheck,
   Swords,
   RefreshCcw,
-  SkipForward
+  SkipForward,
+  Home,
+  LogOut,
+  Zap,
 } from 'lucide-react';
 import { cn } from "../lib/utils";
 
@@ -121,6 +124,7 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
   const [shieldAmt, setShieldAmt] = useState<Record<PlayerId, number>>({ p1: 0, p2: 0 });
   const [exLifeAmt, setExLifeAmt] = useState<Record<PlayerId, number>>({ p1: 1, p2: 1 });
   const [notification, setNotification] = useState<{ msg: string; type: 'error' | 'info' } | null>(null);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // ─── Refs ──────────────────────────────────────────────────────────────────
   const menuRef = useRef<HTMLDivElement>(null);
@@ -653,29 +657,34 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
       >
         <DroppableZone id={`${pid}_hand`} title="" className="min-w-[120px] w-max px-4 h-full bg-transparent pointer-events-auto transition-all duration-300" invisible count={zones[`${pid}_hand`].length}>
           <div className="flex items-end justify-center w-max h-full px-2 pb-2 pointer-events-none">
-            {zones[`${pid}_hand`].map((id, idx) => (
-              <div
-                key={id}
-                onMouseEnter={() => setHoveredHand(pid)}
-                onMouseLeave={() => setHoveredHand(null)}
-                className={cn(
-                  "relative transition-all duration-200 hover:-translate-y-6 hover:scale-110 hover:z-[510] w-14 group cursor-pointer pointer-events-auto",
-                  idx > 0 ? "-ml-6" : "",
-                  placementMenu?.card.id === id ? "ring-2 ring-blue-500/50 -translate-y-4" : ""
-                )}
-              >
-                <div className={rot}>
-                  <Card
-                    card={cards[id]}
-                    zone={`${pid}_hand`}
-                    onHover={(c) => handleCardHover(c, `${pid}_hand` as ZoneName)}
-                    onLeave={() => handleCardHover(null)}
-                    onClick={handleCardClick}
-                    onDoubleClick={handleCardDoubleClick}
-                  />
+            {zones[`${pid}_hand`].map((id, idx) => {
+              const isActiveCard = placementMenu?.card.id === id;
+              return (
+                <div
+                  key={id}
+                  onMouseEnter={() => setHoveredHand(pid)}
+                  onMouseLeave={() => { if (!isActiveCard) setHoveredHand(null); }}
+                  className={cn(
+                    "relative transition-all duration-200 w-14 group cursor-pointer pointer-events-auto",
+                    idx > 0 ? "-ml-6" : "",
+                    isActiveCard
+                      ? "-translate-y-6 scale-110 z-[510] ring-2 ring-blue-400/60"
+                      : "hover:-translate-y-6 hover:scale-110 hover:z-[510]"
+                  )}
+                >
+                  <div className={rot}>
+                    <Card
+                      card={cards[id]}
+                      zone={`${pid}_hand`}
+                      onHover={(c) => handleCardHover(c, `${pid}_hand` as ZoneName)}
+                      onLeave={() => handleCardHover(null)}
+                      onClick={handleCardClick}
+                      onDoubleClick={handleCardDoubleClick}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </DroppableZone>
       </div>
@@ -734,11 +743,63 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
         <main className="flex-1 h-screen flex flex-col relative overflow-hidden bg-[#0a0d14]">
           {renderBoard("p2", true)}
 
+
+          {/* ── Exit Confirm Modal ── */}
+          {showExitConfirm && (
+            <div className="fixed inset-0 z-[3500] flex items-center justify-center">
+              {/* Backdrop */}
+              <div
+                className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                onClick={() => setShowExitConfirm(false)}
+              />
+              {/* Panel */}
+              <div className="relative z-10 bg-[#080b12]/98 border border-white/10 rounded-2xl shadow-[0_40px_80px_rgba(0,0,0,0.8)] p-8 flex flex-col items-center gap-5 min-w-[280px]">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+                  <LogOut size={20} className="text-red-400" />
+                </div>
+                <div className="text-center">
+                  <h2 className="text-white font-black text-sm uppercase tracking-[0.2em] mb-1">¿Salir al menú?</h2>
+                  <p className="text-slate-400 text-[10px] leading-relaxed">Se perderá el estado actual de la partida.</p>
+                </div>
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setShowExitConfirm(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 text-[9px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => { setShowExitConfirm(false); onExit(); }}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600/80 border border-red-500/40 text-white text-[9px] font-black uppercase tracking-widest hover:bg-red-500/90 hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] transition-all"
+                  >
+                    Salir
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Battle Line (Frontera de Energía Neón) */}
           <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#00f2ff] shadow-[0_0_20px_rgba(0,242,255,1),_0_0_5px_rgba(255,255,255,0.8)] z-5 pointer-events-none select-none opacity-100" />
 
-          {/* Phase HUD */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] pointer-events-none w-full flex justify-center">
+          {/* Phase HUD + Combat Actions */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] pointer-events-none flex items-center gap-2">
+
+            {/* ── Home Button (izquierda extrema, antes del combat tab) ── */}
+            <button
+              onClick={() => setShowExitConfirm(true)}
+              title="Volver al menú principal"
+              className={cn(
+                "h-8 w-8 rounded-full backdrop-blur-[12px] border flex items-center justify-center pointer-events-auto cursor-pointer transition-all duration-300 hover:scale-105 group/home",
+                currentPlayer === 'p1'
+                  ? "bg-[#0f172a]/90 border-blue-500/20 text-slate-500 hover:border-white/20 hover:text-slate-300"
+                  : "bg-[#1a0f0f]/90 border-red-500/20  text-slate-500 hover:border-white/20 hover:text-slate-300"
+              )}
+            >
+              <Home size={10} className="group-hover/home:scale-110 transition-transform duration-200" />
+            </button>
+
+            {/* ── HUD Pill ── */}
             <div className={cn(
               "flex items-center backdrop-blur-[12px] p-0.5 px-3 rounded-full pointer-events-auto h-8 transition-all duration-500 scale-95 origin-center",
               currentPlayer === "p1"
@@ -771,6 +832,57 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
                   <SkipForward size={10} className={currentPlayer === "p1" ? "text-blue-400" : "text-red-400"} />
                 </div>
               </button>
+            </div>
+
+            {/* ── Combat Actions Tab (derecha del pill) ── */}
+            <div className="relative group pointer-events-auto flex items-center">
+
+              {/* Tab visible (siempre asoma, pequeño) */}
+              <div className={cn(
+                "h-8 w-8 rounded-full backdrop-blur-[12px] border flex items-center justify-center cursor-pointer transition-all duration-300",
+                "group-hover:scale-105",
+                currentPlayer === 'p1'
+                  ? "bg-[#0f172a]/90 border-blue-500/20 text-blue-500/60 group-hover:border-blue-400/50 group-hover:text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.1)]"
+                  : "bg-[#1a0f0f]/90 border-red-500/20 text-red-500/60  group-hover:border-red-400/50  group-hover:text-red-300  shadow-[0_0_12px_rgba(239,68,68,0.1)]"
+              )}>
+                <Swords size={10} />
+              </div>
+
+              {/* Panel expandido – aparece a la DERECHA del tab al hacer hover */}
+              <div className="absolute left-full ml-2 flex items-center gap-1.5
+                opacity-0 pointer-events-none
+                group-hover:opacity-100 group-hover:pointer-events-auto
+                -translate-x-3 group-hover:translate-x-0
+                transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]">
+
+                {/* BLOCK */}
+                <button
+                  onClick={() => showNotification(`${currentPlayer.toUpperCase()} declared BLOCK!`, 'info')}
+                  className="flex items-center gap-1.5 h-7 px-3 rounded-full
+                    bg-blue-950/90 border border-blue-500/30 backdrop-blur-xl
+                    text-blue-300 hover:text-white hover:bg-blue-700/60 hover:border-blue-400/60
+                    text-[8px] font-black uppercase tracking-[0.2em]
+                    shadow-[0_0_12px_rgba(59,130,246,0.2)] hover:shadow-[0_0_20px_rgba(59,130,246,0.5)]
+                    transition-all duration-150 whitespace-nowrap"
+                >
+                  <ShieldCheck size={9} className="shrink-0" />
+                  Block
+                </button>
+
+                {/* TRIGGER */}
+                <button
+                  onClick={() => showNotification(`${currentPlayer.toUpperCase()} activated SHIELD TRIGGER!`, 'info')}
+                  className="flex items-center gap-1.5 h-7 px-3 rounded-full
+                    bg-amber-950/90 border border-amber-500/30 backdrop-blur-xl
+                    text-amber-300 hover:text-white hover:bg-amber-700/60 hover:border-amber-400/60
+                    text-[8px] font-black uppercase tracking-[0.2em]
+                    shadow-[0_0_12px_rgba(245,158,11,0.2)] hover:shadow-[0_0_20px_rgba(245,158,11,0.5)]
+                    transition-all duration-150 whitespace-nowrap"
+                >
+                  <Zap size={9} className="shrink-0" />
+                  Trigger
+                </button>
+              </div>
             </div>
           </div>
 
@@ -944,7 +1056,7 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
                         <div className="w-1 h-1 bg-white/20 rounded-full" />
                         <span className="text-[7px] text-white/40 font-black tracking-[0.2em] uppercase">Unlink All EXLife</span>
                       </div>
-                      <button onClick={() => { currentCard.linkedCardIds?.forEach(cid => unlinkCard(cid, currentCard.id, `${currentCard.owner}_hand` as ZoneName)); setPlacementMenu(null); }} className="w-full px-4 py-2 hover:bg-blue-500/20 text-white text-[8px] font-black text-left uppercase tracking-wider flex items-center gap-2 border-b border-white/5">To Hand</button>
+                      <button onClick={() => { currentCard.linkedCardIds?.forEach(cid => unlinkCard(cid, currentCard.id, `${currentCard.owner}_hand` as ZoneName)); setPlacementMenu(null); }} className="w-full px-4 py-2 hover:bg-blue-500/20 text-white text-[8px] font-black text-left uppercase tracking-wider flex items-center gap-2 border-b border-white/5">To Hand / Bounce</button>
                       <button onClick={() => { currentCard.linkedCardIds?.forEach(cid => unlinkCard(cid, currentCard.id, `${currentCard.owner}_cemetery` as ZoneName)); setPlacementMenu(null); }} className="w-full px-4 py-2 hover:bg-red-500/20 text-white text-[8px] font-black text-left uppercase tracking-wider flex items-center gap-2 border-b border-white/5">To Cemetery</button>
                       <button onClick={() => { currentCard.linkedCardIds?.forEach(cid => unlinkCard(cid, currentCard.id, `${currentCard.owner}_mainDeck` as ZoneName, 0)); setPlacementMenu(null); }} className="w-full px-4 py-2 hover:bg-indigo-500/20 text-white text-[8px] font-black text-left uppercase tracking-wider flex items-center gap-2 border-b border-white/5">To Deck Top</button>
                       <button onClick={() => { currentCard.linkedCardIds?.forEach(cid => unlinkCard(cid, currentCard.id, `${currentCard.owner}_mainDeck` as ZoneName)); setPlacementMenu(null); }} className="w-full px-4 py-2 hover:bg-indigo-500/20 text-white text-[8px] font-black text-left uppercase tracking-wider flex items-center gap-2 border-b border-white/5">To Deck Bottom</button>
@@ -986,7 +1098,7 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
 
                   {/* SUBMENU */}
                   <div className="absolute left-[98%] bottom-0 ml-1 hidden group-hover:flex flex-col bg-[#090c12]/98 backdrop-blur-xl border border-white/10 shadow-4xl min-w-[150px] z-[1120] max-h-[200px] overflow-y-auto overscroll-contain custom-scrollbar-thin">
-                    <button onClick={() => handlePlaceCard(`${currentCard.owner}_hand` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-gray-400" /> To Hand</button>
+                    <button onClick={() => handlePlaceCard(`${currentCard.owner}_hand` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-gray-400" /> To Hand / Bounce</button>
                     <button onClick={() => { moveCard(currentCard.id, placementMenu.fromZone, `${currentCard.owner}_mainDeck` as ZoneName, 0); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-indigo-400" /> To Top Deck</button>
                     <button onClick={() => { moveCard(currentCard.id, placementMenu.fromZone, `${currentCard.owner}_mainDeck` as ZoneName); setPlacementMenu(null); }} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-indigo-700" /> To Bottom Deck</button>
                     <button onClick={() => handlePlaceCard(`${currentCard.owner}_manaZone` as ZoneName)} className="w-full px-4 py-3 hover:bg-white/5 text-white text-[9px] font-black text-left uppercase tracking-widest flex items-center gap-3 border-b border-white/5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> To Mana</button>
