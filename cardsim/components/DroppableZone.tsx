@@ -18,9 +18,10 @@ interface DroppableZoneProps {
   manaCards?: string[]; // IDs of cards in mana
   cardsData?: Record<string, any>;
   style?: React.CSSProperties;
+  allowOverflow?: boolean;
 }
 
-export function DroppableZone({ id, title, children, className, horizontalScroll, compact, invisible, onView, count, label, manaCards, cardsData, style }: DroppableZoneProps) {
+export function DroppableZone({ id, title, children, className, horizontalScroll, compact, invisible, onView, count, label, manaCards, cardsData, style, allowOverflow }: DroppableZoneProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: id,
   });
@@ -99,7 +100,7 @@ export function DroppableZone({ id, title, children, className, horizontalScroll
         "z-10 min-h-[3rem] w-full",
         compact ? "h-full relative overflow-visible" : cn(
           "flex-1 relative min-h-0",
-          invisible ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"
+          (invisible || allowOverflow) ? "overflow-visible" : "overflow-y-auto overflow-x-hidden"
         ),
         horizontalScroll && !compact ? "flex overflow-x-auto overflow-y-hidden items-center p-2 gap-2 custom-scrollbar" : "",
         !horizontalScroll && !compact ? "flex flex-wrap content-start p-2 gap-2 custom-scrollbar" : ""

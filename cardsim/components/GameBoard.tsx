@@ -261,49 +261,61 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
     const isFromDeck = fromZone.includes('mainDeck');
     const isTargetInBattle = toZone.includes('attackZone');
 
+    let bx: number | null | undefined = undefined;
+    let by: number | null | undefined = undefined;
+    let newIndex: number | undefined = undefined;
+
     if (isTargetingCard && targetCard) {
-      // Logic for dropping on another card
       if (isTargetInBattle) {
         if (isFromDeck) {
           linkCard(cardId, targetCard.id, fromZone);
+          return;
         } else {
-          showNotification("EXLife can only be added from the Deck.");
+          // Reordenar al soltar sobre otra carta en la Zona de Batalla
+          const targetZoneCards = zones[toZone];
+          const targetIdx = targetZoneCards.indexOf(targetCard.id);
+          if (targetIdx !== -1) {
+            newIndex = targetIdx;
+            bx = null;
+            by = targetCard.boardY ?? 0;
+          }
         }
       } else if (toZone.includes('shields')) {
         showNotification("You cannot add EXLife to Shield cards.");
+        return;
       } else if (fromZone !== toZone) {
-        // Just move to the zone if dropping on a card in Hand/Mana/etc.
         moveCard(cardId, fromZone, toZone);
+        return;
       }
     } else {
       // Logic for dropping on a zone (or empty space in attackZone)
       const activeRect = active.rect.current.translated;
       const overRect = over?.rect;
 
-      let bx: number | null | undefined = null; // Default a null (flujo flex normal)
-      let by: number | null | undefined = null;
-
-      // Permitir posicionamiento libre ÚNICAMENTE si el destino es la Attack Zone (Tablero principal)
       if (activeRect && overRect && toZone.includes('attackZone')) {
-        const centerX = activeRect.left + activeRect.width / 2;
-        const centerY = activeRect.top + activeRect.height / 2;
+        const dropX = (activeRect.left + activeRect.width / 2) - overRect.left;
+        const dropY = (activeRect.top + activeRect.height / 2) - overRect.top;
 
-        const wrapperWidth = 64; // w-16 = 4rem = 64px
-        const wrapperHeight = wrapperWidth * (4 / 3); // 85.33px
+        // Fila: 0 = Arriba, 1 = Abajo
+        const row = dropY < (overRect.height / 2) ? 0 : 1;
 
-        const isFlipped = toZone.startsWith('p2');
-        if (isFlipped) {
-          bx = overRect.right - (centerX + wrapperWidth / 2);
-          by = overRect.bottom - (centerY + wrapperHeight / 2);
-        } else {
-          bx = (centerX - wrapperWidth / 2) - overRect.left;
-          by = (centerY - wrapperHeight / 2) - overRect.top;
-        }
+        // Snapping Horizontal: slots de 80px
+        // Centramos una carta de 56px (w-14) en un slot de 80px: (80 - 56) / 2 = 12px
+        const snappedX = Math.round((dropX - 40) / 80) * 80 + 12;
+
+        bx = Math.max(12, Math.min(overRect.width - 68, snappedX));
+        by = row;
+
+        // Mantener en el array para consistencia
+        newIndex = zones[toZone].length;
+      } else {
+        bx = null;
+        by = null;
       }
+    }
 
-      if (fromZone !== toZone || toZone.includes('attackZone')) {
-        moveCard(cardId, fromZone, toZone, undefined, bx ?? undefined, by ?? undefined);
-      }
+    if (fromZone !== toZone || toZone.includes('attackZone')) {
+      moveCard(cardId, fromZone, toZone, newIndex, bx ?? undefined, by ?? undefined);
     }
   };
 
@@ -470,11 +482,11 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
     const rot = f ? "rotate-180" : "";
 
     return (
-      <div className={cn("grid grid-rows-[60%_40%] h-[50vh] w-full relative z-10 overflow-hidden", rot)}>
+      <div className={cn("grid grid-rows-[60%_40%] h-[50vh] w-full relative", rot)}>
 
         {/* ── Battle Zone (60%) ── */}
         <div
-          className="relative h-full border-b border-[#00f2ff]/20 backdrop-blur-[16px] overflow-hidden"
+          className="relative h-full border-b border-[#00f2ff]/20 backdrop-blur-[16px]"
           style={{
             backgroundColor: 'rgba(60, 30, 30, 0.18)',
             backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.05) 0%, transparent 70%)'
@@ -488,15 +500,31 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
             label="BATTLE ZONE"
             className="w-full h-full"
             count={zones[`${pid}_attackZone`].length}
+            allowOverflow={true}
           >
-            <div className="flex flex-wrap justify-center content-center items-center px-4 pt-10 pb-4 gap-3 w-full h-full overflow-y-auto custom-scrollbar relative">
+            <div className="relative w-full h-full overflow-visible group/battle">
+
               {zones[`${pid}_attackZone`].map(id => {
                 const c = cards[id];
-                const hasPos = c.boardX != null && c.boardY != null;
+                const isF1 = (c.boardY ?? 0) === 1;
+                const cardLeft = c.boardX ?? 12;
+
+                // Centrado vertical perfecto usando porcentajes y transform
+                const rowBaseTop = isF1 ? '75%' : '25%';
+
                 return (
-                  <div key={id}
-                    className={cn("shrink-0 w-16 transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 hover:z-50", rot, hasPos ? "absolute" : "relative")}
-                    style={hasPos ? { left: c.boardX as number, top: c.boardY as number, margin: 0 } : {}}>
+                  <div
+                    key={id}
+                    className={cn(
+                      "absolute w-14 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 hover:z-[100]",
+                      rot
+                    )}
+                    style={{
+                      left: cardLeft,
+                      top: rowBaseTop,
+                      transform: 'translateY(-50%)',
+                    }}
+                  >
                     <Card
                       card={c}
                       zone={`${pid}_attackZone` as ZoneName}
@@ -506,8 +534,9 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
                       onDoubleClick={handleCardDoubleClick}
                     />
                   </div>
-                )
+                );
               })}
+
             </div>
           </DroppableZone>
         </div>
@@ -520,12 +549,15 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
             id={`${pid}_manaZone`}
             title=""
             label="MANA ZONE"
-            className="flex-1 min-w-0 border-r border-[#00ff88]/20 overflow-visible relative backdrop-blur-[16px]"
+            className="flex-1 min-w-0 border-r border-[#00ff88]/30 overflow-visible relative backdrop-blur-[16px] transition-all duration-500"
             style={{
               backgroundColor: 'rgba(20, 50, 40, 0.35)',
               backgroundImage: 'radial-gradient(circle at 0% 100%, rgba(0, 255, 136, 0.08) 0%, transparent 60%)',
-              borderTop: f ? 'none' : '1px solid rgba(0, 255, 136, 0.2)',
-              borderBottom: f ? '1px solid rgba(0, 255, 136, 0.2)' : 'none'
+              borderTop: f ? 'none' : '2px solid rgba(0, 255, 136, 0.6)',
+              borderBottom: f ? '2px solid rgba(0, 255, 136, 0.6)' : 'none',
+              boxShadow: f
+                ? 'inset 0 -10px 20px -10px rgba(0, 255, 136, 0.2), 0 2px 10px rgba(0, 255, 136, 0.3)'
+                : 'inset 0 10px 20px -10px rgba(0, 255, 136, 0.2), 0 -2px 10px rgba(0, 255, 136, 0.3)'
             }}
             count={zones[`${pid}_manaZone`].length}
             manaCards={zones[`${pid}_manaZone`]}
@@ -563,12 +595,15 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
             id={`${pid}_shields`}
             title=""
             label="SHIELD ZONE"
-            className="flex-1 min-w-0 relative overflow-visible backdrop-blur-[16px]"
+            className="flex-1 min-w-0 relative overflow-visible backdrop-blur-[16px] transition-all duration-500"
             style={{
               backgroundColor: 'rgba(60, 50, 20, 0.35)',
-              backgroundImage: 'radial-gradient(circle at 100% 100%, rgba(255, 204, 0, 0.08) 0%, transparent 60%)',
-              borderTop: f ? 'none' : '1px solid rgba(255, 204, 0, 0.2)',
-              borderBottom: f ? '1px solid rgba(255, 204, 0, 0.2)' : 'none'
+              backgroundImage: 'radial-gradient(circle at 100% 100%, rgba(255, 215, 0, 0.08) 0%, transparent 60%)',
+              borderTop: f ? 'none' : '2px solid rgba(255, 230, 0, 0.7)',
+              borderBottom: f ? '2px solid rgba(255, 230, 0, 0.7)' : 'none',
+              boxShadow: f
+                ? 'inset 0 -10px 20px -10px rgba(255, 230, 0, 0.3), 0 2px 10px rgba(255, 230, 0, 0.4)'
+                : 'inset 0 10px 20px -10px rgba(255, 230, 0, 0.3), 0 -2px 10px rgba(255, 230, 0, 0.4)'
             }}
             count={zones[`${pid}_shields`].length}
           >
@@ -779,11 +814,18 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
             </div>
           )}
 
-          {/* Battle Line (Frontera de Energía Neón) */}
-          <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#00f2ff] shadow-[0_0_20px_rgba(0,242,255,1),_0_0_5px_rgba(255,255,255,0.8)] z-5 pointer-events-none select-none opacity-100" />
+          {/* Battle Line (Frontera de Energía Dinámica) */}
+          <div
+            className={cn(
+              "absolute top-1/2 left-0 w-full h-[2px] z-5 pointer-events-none select-none opacity-100 transition-all duration-700",
+              currentPlayer === 'p1'
+                ? "bg-[#00f2ff] shadow-[0_0_20px_rgba(0,242,255,1),_0_0_5px_rgba(255,255,255,0.8)]"
+                : "bg-red-500 shadow-[0_0_20px_rgba(239,68,68,1),_0_0_5px_rgba(255,255,255,0.6)]"
+            )}
+          />
 
           {/* Phase HUD + Combat Actions */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] pointer-events-none flex items-center gap-2">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[20] pointer-events-none flex items-center gap-2">
 
             {/* ── Home Button (izquierda extrema, antes del combat tab) ── */}
             <button
