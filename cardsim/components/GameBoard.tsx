@@ -552,12 +552,10 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
             className="flex-1 min-w-0 border-r border-[#00ff88]/30 overflow-visible relative backdrop-blur-[16px] transition-all duration-500"
             style={{
               backgroundColor: 'rgba(20, 50, 40, 0.35)',
-              backgroundImage: 'radial-gradient(circle at 0% 100%, rgba(0, 255, 136, 0.08) 0%, transparent 60%)',
-              borderTop: f ? 'none' : '2px solid rgba(0, 255, 136, 0.6)',
-              borderBottom: f ? '2px solid rgba(0, 255, 136, 0.6)' : 'none',
-              boxShadow: f
-                ? 'inset 0 -10px 20px -10px rgba(0, 255, 136, 0.2), 0 2px 10px rgba(0, 255, 136, 0.3)'
-                : 'inset 0 10px 20px -10px rgba(0, 255, 136, 0.2), 0 -2px 10px rgba(0, 255, 136, 0.3)'
+              backgroundImage: `radial-gradient(circle at ${f ? '100% 0%' : '0% 100%'}, rgba(0, 255, 136, 0.08) 0%, transparent 60%)`,
+              borderTop: '2px solid rgba(0, 255, 136, 0.6)',
+              borderBottom: 'none',
+              boxShadow: 'inset 0 10px 20px -10px rgba(0, 255, 136, 0.2), 0 -2px 10px rgba(0, 255, 136, 0.3)'
             }}
             count={zones[`${pid}_manaZone`].length}
             manaCards={zones[`${pid}_manaZone`]}
@@ -598,12 +596,10 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
             className="flex-1 min-w-0 relative overflow-visible backdrop-blur-[16px] transition-all duration-500"
             style={{
               backgroundColor: 'rgba(60, 50, 20, 0.35)',
-              backgroundImage: 'radial-gradient(circle at 100% 100%, rgba(255, 215, 0, 0.08) 0%, transparent 60%)',
-              borderTop: f ? 'none' : '2px solid rgba(255, 230, 0, 0.7)',
-              borderBottom: f ? '2px solid rgba(255, 230, 0, 0.7)' : 'none',
-              boxShadow: f
-                ? 'inset 0 -10px 20px -10px rgba(255, 230, 0, 0.3), 0 2px 10px rgba(255, 230, 0, 0.4)'
-                : 'inset 0 10px 20px -10px rgba(255, 230, 0, 0.3), 0 -2px 10px rgba(255, 230, 0, 0.4)'
+              backgroundImage: `radial-gradient(circle at ${f ? '0% 0%' : '100% 100%'}, rgba(255, 230, 0, 0.08) 0%, transparent 60%)`,
+              borderTop: '2px solid rgba(255, 230, 0, 0.7)',
+              borderBottom: 'none',
+              boxShadow: 'inset 0 10px 20px -10px rgba(255, 230, 0, 0.3), 0 -2px 10px rgba(255, 230, 0, 0.4)'
             }}
             count={zones[`${pid}_shields`].length}
           >
