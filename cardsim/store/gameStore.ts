@@ -10,10 +10,14 @@ export const PHASES: PhaseName[] = ['Start', 'Untap', 'Draw', 'Mana', 'Main', 'A
 export interface GameCard {
     id: string;
     name: string;
+    nameJa?: string;
+    nameEn?: string;
     image?: string;
     description: string;
-    manaCost: number;
-    attack: number;
+    descriptionJa?: string;
+    descriptionEn?: string;
+    manaCost: number | string;
+    attack: number | string;
     color: string;
     position: CardPosition;
     face: CardFace;
@@ -51,7 +55,6 @@ interface GameState {
     toggleFace: (cardId: string) => void;
     untapAll: (playerId: PlayerId) => void;
     nextPhase: () => void;
-    setPhase: (phase: PhaseName) => void;
     endTurn: (playerId: PlayerId) => void; // Keep for fallback, or maybe remove later
     initializeGame: () => void;
     linkCard: (childId: string, parentId: string, fromZone: ZoneName) => void;
@@ -311,10 +314,6 @@ export const useGameStore = create<GameState>((set) => ({
             zones: newZones
         };
     }),
-
-    setPhase: (phase) => set(() => ({
-        currentPhase: phase
-    })),
 
     linkCard: (childId, parentId, fromZone) => set((state) => {
         if (childId === parentId) return state; // No card should link to itself
