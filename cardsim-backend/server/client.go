@@ -12,7 +12,7 @@ const (
 	writeWait      = 10 * time.Second
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
-	maxMessageSize = 512
+	maxMessageSize = 2048 // Increased to handle JSON
 )
 
 var (
@@ -21,9 +21,11 @@ var (
 )
 
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	hub      *Hub
+	conn     *websocket.Conn
+	send     chan []byte
+	UserID   int
+	Username string
 }
 
 func (c *Client) readPump() {
@@ -44,9 +46,7 @@ func (c *Client) readPump() {
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 		
-		// Here we would route the message to the specific Match or Lobby logic
-		log.Printf("Received message: %s", message)
-		c.hub.broadcast <- message
+		c.hub.handleMessage(c, message)
 	}
 }
 

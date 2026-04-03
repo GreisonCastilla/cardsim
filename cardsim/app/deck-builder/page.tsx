@@ -38,10 +38,11 @@ export default function DeckBuilder() {
 
   useEffect(() => {
     const initDecks = async () => {
-      // First try backend
-      try {
-        const token = localStorage.getItem("cardsim_token");
-        if (token) {
+      const token = localStorage.getItem("cardsim_token");
+      
+      // Try backend first if authenticated
+      if (token) {
+        try {
           const backendDecks = await fetchDecks();
           if (backendDecks && backendDecks.length > 0) {
             const mapped: DeckData[] = backendDecks.map(d => ({
@@ -53,9 +54,11 @@ export default function DeckBuilder() {
             }));
             setDecks(mapped);
             setCurrentDeckId(mapped[0].id);
+            // Persist to local storage to avoid future local default creations
+            localStorage.setItem("cardsim_decks", JSON.stringify(mapped));
             return;
           } else {
-             // Authenticated but no decks, create a default one in backend
+             // Authenticated but no decks in backend, create a default one in backend
              await saveDeck({ name: "Mi Primer Mazo", main_deck: [], g_zone: [], hyperspatial: [] });
              const newBackendDecks = await fetchDecks();
              if (newBackendDecks && newBackendDecks.length > 0) {
@@ -68,21 +71,31 @@ export default function DeckBuilder() {
                }));
                setDecks(mapped);
                setCurrentDeckId(mapped[0].id);
+               localStorage.setItem("cardsim_decks", JSON.stringify(mapped));
                return;
              }
           }
+        } catch(err) {
+          console.error("Backend fetch failed, falling back to local storage:", err);
+          // Proceed to local check
         }
-      } catch(err) {
-        console.error("Backend fetch failed, falling back to local:", err);
       }
 
       // Fallback to local
       const saved = localStorage.getItem("cardsim_decks");
       if (saved) {
         const parsed = JSON.parse(saved);
-        setDecks(parsed);
-        if (parsed.length > 0) setCurrentDeckId(parsed[0].id);
-      } else {
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDecks(parsed);
+          setCurrentDeckId(parsed[0].id);
+          return;
+        }
+      }
+
+      // ONLY create "Mi Primer Mazo" locally if NOT logged in and nothing exists.
+      // If there is a token, we expect the backend to have the decks (even if it currently failed),
+      // so we avoid creating a redundant local-only dummy deck.
+      if (!token) {
         const defaultDeck = { id: "deck_1", name: "Mi Primer Mazo", mainDeck: [], gZone: [], hyperspatial: [] };
         setDecks([defaultDeck]);
         setCurrentDeckId(defaultDeck.id);
