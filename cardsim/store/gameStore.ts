@@ -44,9 +44,10 @@ interface GameState {
     zones: Record<ZoneName, string[]>;
     currentPlayer: PlayerId;
     currentPhase: PhaseName;
+    myRole: PlayerId; // 'p1' for local play, set to actual role in multiplayer
 
     drawCards: (playerId: PlayerId, amount: number) => void;
-    shuffleDeck: (playerId: PlayerId) => void;
+    shuffleDeck: (playerId: PlayerId, newOrder?: string[]) => void;
     moveCard: (cardId: string, fromZone: ZoneName, toZone: ZoneName, newIndex?: number, boardX?: number | null, boardY?: number | null) => void;
     topToMana: (playerId: PlayerId) => void;
     topToShield: (playerId: PlayerId) => void;
@@ -57,6 +58,10 @@ interface GameState {
     nextPhase: () => void;
     endTurn: (playerId: PlayerId) => void; // Keep for fallback, or maybe remove later
     initializeGame: () => void;
+    initializeGameFromDecks: (myDeck: GameCard[], opponentDeck: GameCard[], myRole: PlayerId) => void;
+    applyRemoteZones: (zones: Partial<Record<ZoneName, string[]>>, cardFaces?: Record<string, CardFace>) => void;
+    applyFullSync: (zones: Record<ZoneName, string[]>, cards: Record<string, GameCard>, currentPlayer?: PlayerId, currentPhase?: PhaseName) => void;
+    applyRemotePhase: (phase: PhaseName, player: PlayerId) => void;
     linkCard: (childId: string, parentId: string, fromZone: ZoneName) => void;
     unlinkCard: (childId: string, parentId: string, toZone: ZoneName, newIndex?: number) => void;
 }
@@ -92,6 +97,7 @@ export const useGameStore = create<GameState>((set) => ({
     zones: createInitialZones(),
     currentPlayer: 'p1',
     currentPhase: 'Start',
+    myRole: 'p1',
 
     drawCards: (playerId, amount) => set((state) => {
         const deckKey = `${playerId}_mainDeck` as ZoneName;
@@ -115,9 +121,9 @@ export const useGameStore = create<GameState>((set) => ({
         };
     }),
 
-    shuffleDeck: (playerId) => set((state) => {
+    shuffleDeck: (playerId, newOrder) => set((state) => {
         const deckKey = `${playerId}_mainDeck` as ZoneName;
-        const shuffled = [...state.zones[deckKey]].sort(() => Math.random() - 0.5);
+        const shuffled = newOrder || [...state.zones[deckKey]].sort(() => Math.random() - 0.5);
         return {
             zones: {
                 ...state.zones,
@@ -127,12 +133,24 @@ export const useGameStore = create<GameState>((set) => ({
     }),
 
     moveCard: (cardId, fromZone, toZone, newIndex, boardX, boardY) => set((state) => {
-        const isSameZone = fromZone === toZone;
-        const fromArray = [...state.zones[fromZone]];
-        const toArray = isSameZone ? fromArray : [...state.zones[toZone]];
+        let actualFromZone = fromZone;
+        
+        if (!state.zones[actualFromZone]) return state; // Guard against undefined zone
+        
+        let fromArray = [...state.zones[actualFromZone]];
+        let index = fromArray.indexOf(cardId);
 
-        const index = fromArray.indexOf(cardId);
-        if (index === -1) return state;
+        // Fallback: If the card isn't in the expected fromZone, find where it ACTUALLY is
+        if (index === -1) {
+            const foundEntry = Object.entries(state.zones).find(([_, ids]) => (ids as string[]).includes(cardId));
+            if (!foundEntry) return state; // The card genuinely doesn't exist on this client
+            actualFromZone = foundEntry[0] as ZoneName;
+            fromArray = [...state.zones[actualFromZone]];
+            index = fromArray.indexOf(cardId);
+        }
+
+        const isSameZone = actualFromZone === toZone;
+        const toArray = isSameZone ? fromArray : [...state.zones[toZone]];
 
         fromArray.splice(index, 1);
 
@@ -169,7 +187,7 @@ export const useGameStore = create<GameState>((set) => ({
         if (boardX === null) delete updatedCard.boardX;
         if (boardY === null) delete updatedCard.boardY;
 
-        const newZones = { ...state.zones, [fromZone]: fromArray };
+        const newZones = { ...state.zones, [actualFromZone]: fromArray };
         if (!isSameZone) {
             newZones[toZone] = toArray;
         }
@@ -290,20 +308,23 @@ export const useGameStore = create<GameState>((set) => ({
                 newCards[id] = { ...newCards[id], position: 'vertical' };
             });
         } else if (nextPhaseName === 'Draw') {
-            const deckKey = `${nextPlayer}_mainDeck` as ZoneName;
-            const handKey = `${nextPlayer}_hand` as ZoneName;
-            if (state.zones[deckKey].length > 0) {
-                const drawnId = state.zones[deckKey][0];
-                const newDeck = state.zones[deckKey].slice(1);
-                const newHand = [...state.zones[handKey], drawnId];
+            // ONLY auto-draw if it's a completely local sandbox game (no P2 cards)
+            // In multiplayer, BOTH players must manually draw their cards using
+            // explicit actions (like pressing 'D' or deck menu) to guarantee sync
+            const hasP2Cards = state.zones['p2_mainDeck'].length > 0 || state.zones['p2_hand'].length > 0;
+            const isMultiplayer = hasP2Cards;
 
-                newCards[drawnId] = { ...newCards[drawnId], face: 'up', position: 'vertical' };
-
-                newZones = {
-                    ...newZones,
-                    [deckKey]: newDeck,
-                    [handKey]: newHand
-                };
+            if (!isMultiplayer) {
+                // Local play sandbox: auto draw
+                const deckKey = `${nextPlayer}_mainDeck` as ZoneName;
+                const handKey = `${nextPlayer}_hand` as ZoneName;
+                if (state.zones[deckKey].length > 0) {
+                    const drawnId = state.zones[deckKey][0];
+                    const newDeck = state.zones[deckKey].slice(1);
+                    const newHand = [...state.zones[handKey], drawnId];
+                    newCards[drawnId] = { ...newCards[drawnId], face: 'up', position: 'vertical' };
+                    newZones = { ...newZones, [deckKey]: newDeck, [handKey]: newHand };
+                }
             }
         }
 
@@ -317,9 +338,21 @@ export const useGameStore = create<GameState>((set) => ({
 
     linkCard: (childId, parentId, fromZone) => set((state) => {
         if (childId === parentId) return state; // No card should link to itself
-        const fromArray = [...state.zones[fromZone]];
-        const index = fromArray.indexOf(childId);
-        if (index === -1) return state;
+        
+        let actualFromZone = fromZone;
+        
+        if (!state.zones[actualFromZone]) return state; // Guard
+        
+        let fromArray = [...state.zones[actualFromZone]];
+        let index = fromArray.indexOf(childId);
+
+        if (index === -1) {
+            const foundEntry = Object.entries(state.zones).find(([_, ids]) => (ids as string[]).includes(childId));
+            if (!foundEntry) return state;
+            actualFromZone = foundEntry[0] as ZoneName;
+            fromArray = [...state.zones[actualFromZone]];
+            index = fromArray.indexOf(childId);
+        }
 
         fromArray.splice(index, 1);
 
@@ -333,7 +366,7 @@ export const useGameStore = create<GameState>((set) => ({
         parentCard.linkedCardIds = linkedIds;
 
         return {
-            zones: { ...state.zones, [fromZone]: fromArray },
+            zones: { ...state.zones, [actualFromZone]: fromArray },
             cards: { ...state.cards, [childId]: childCard, [parentId]: parentCard }
         };
     }),
@@ -376,6 +409,41 @@ export const useGameStore = create<GameState>((set) => ({
 
         return { cards: newCards };
     }),
+
+    applyRemoteZones: (remoteZones, cardFaces) => set((state) => {
+        const newZones = { ...state.zones, ...remoteZones };
+        const newCards = { ...state.cards };
+
+        (Object.entries(remoteZones) as [ZoneName, string[]][]).forEach(([zone, ids]) => {
+            ids.forEach(id => {
+                if (!newCards[id]) return;
+                const zoneLower = zone.toLowerCase();
+                const face: CardFace = (zoneLower.includes('hand') || zoneLower.includes('manazone') || zoneLower.includes('attackzone'))
+                    ? 'up' : 'down';
+                newCards[id] = { ...newCards[id], face };
+            });
+        });
+
+        if (cardFaces) {
+            Object.entries(cardFaces).forEach(([id, face]) => {
+                if (newCards[id]) newCards[id] = { ...newCards[id], face: face as CardFace };
+            });
+        }
+
+        return { zones: newZones, cards: newCards };
+    }),
+
+    applyFullSync: (zones, cards, currentPlayer, currentPhase) => set((state) => ({
+        zones,
+        cards,
+        currentPlayer: currentPlayer || state.currentPlayer,
+        currentPhase: currentPhase || state.currentPhase
+    })),
+
+    applyRemotePhase: (phase, player) => set(() => ({
+        currentPhase: phase,
+        currentPlayer: player
+    })),
 
     initializeGame: () => set(() => {
         const initPlayerCards = (owner: PlayerId) => {
@@ -441,7 +509,85 @@ export const useGameStore = create<GameState>((set) => ({
                 ...p2Data.zonesPart,
             } as Record<ZoneName, string[]>,
             currentPlayer: 'p1',
-            currentPhase: 'Start'
+            currentPhase: 'Start',
+            myRole: 'p1',
         };
-    })
+    }),
+
+    /**
+     * Initialize the game from real deck data (used for multiplayer).
+     * myDeck = local player's cards (mainDeck, gZone, hyperspatial)
+     * opponentDeck = opponent's cards
+     * myRole = 'p1' if host, 'p2' if guest
+     */
+    initializeGameFromDecks: (myDeckCards, opponentDeckCards, role) => set(() => {
+        const preparePlayer = (owner: PlayerId, deckCards: GameCard[]) => {
+            // Split into zones based on the deck structure
+            // Deck cards come as flat arrays with zone hints embedded;
+            // For simplicity, treat all as mainDeck cards and generate
+            // gZone/hyperspatial from the actual deck data if present.
+            // The DeckData.mainDeck, gZone, hyperspatial are passed flattened here.
+            // We re-use the deck arrays as-is and assign new unique IDs by owner.
+            const assignOwner = (cards: GameCard[], suffix: string): GameCard[] =>
+                cards.map((c, i) => ({
+                    ...c,
+                    id: `${owner}_${suffix}_${i}_${c.id || c.name}`,
+                    owner,
+                    face: 'down' as CardFace,
+                    position: 'vertical' as CardPosition,
+                    linkedCardIds: [],
+                }));
+
+            // deckCards is mainDeck only here (we pass them separately below)
+            const main = assignOwner(deckCards, 'main');
+
+            const shuffledIds = main.map(c => c.id).sort(() => Math.random() - 0.5);
+            const drawnShields = shuffledIds.splice(0, 5);
+            const initialHand = shuffledIds.splice(0, 5);
+
+            const cardMap: Record<string, GameCard> = {};
+            main.forEach(c => { cardMap[c.id] = c; });
+
+            drawnShields.forEach(id => { if (cardMap[id]) cardMap[id] = { ...cardMap[id], face: 'down' }; });
+            initialHand.forEach(id => { if (cardMap[id]) cardMap[id] = { ...cardMap[id], face: 'up' }; });
+
+            return {
+                cardMap,
+                zonesPart: {
+                    [`${owner}_hand`]: initialHand,
+                    [`${owner}_mainDeck`]: shuffledIds,
+                    [`${owner}_shields`]: drawnShields,
+                    [`${owner}_manaZone`]: [],
+                    [`${owner}_attackZone`]: [],
+                    [`${owner}_cemetery`]: [],
+                    [`${owner}_banishZone`]: [],
+                    [`${owner}_hyperspatial`]: [],
+                    [`${owner}_gZone`]: [],
+                },
+            };
+        };
+
+        const myOwner: PlayerId = role;
+        const oppOwner: PlayerId = role === 'p1' ? 'p2' : 'p1';
+
+        const myData = preparePlayer(myOwner, myDeckCards);
+        const oppData = preparePlayer(oppOwner, opponentDeckCards);
+
+        const allCards = { ...myData.cardMap, ...oppData.cardMap };
+
+        // Normalize zones so p1 is always the local player logically,
+        // but store under the actual pid keys
+        const zones: Record<ZoneName, string[]> = {
+            ...myData.zonesPart,
+            ...oppData.zonesPart,
+        } as Record<ZoneName, string[]>;
+
+        return {
+            cards: allCards,
+            zones,
+            currentPlayer: 'p1',
+            currentPhase: 'Start',
+            myRole: role,
+        };
+    }),
 }));

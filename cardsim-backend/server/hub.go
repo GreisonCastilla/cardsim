@@ -29,16 +29,22 @@ type Hub struct {
 }
 
 type Room struct {
-	ID         string
-	Name       string
-	Password   string
-	Host       *Client
-	Guest      *Client
-	HostReady  bool
-	GuestReady bool
-	HostDeck   string
-	GuestDeck  string
-	mu         sync.Mutex
+	ID            string
+	Name          string
+	Password      string
+	Host          *Client
+	Guest         *Client
+	HostName      string
+	GuestName     string
+	HostReady     bool
+	GuestReady    bool
+	HostDeckName  string
+	GuestDeckName string
+	HostDeckData  json.RawMessage
+	GuestDeckData json.RawMessage
+	GameState     json.RawMessage
+	GameStarted   bool
+	mu            sync.Mutex
 }
 
 type RoomInfo struct {
@@ -105,17 +111,27 @@ func (h *Hub) removeClientFromRooms(client *Client) {
 	for id, room := range h.rooms {
 		room.mu.Lock()
 		if room.Host == client {
-			// If host leaves, destroy the room
-			if room.Guest != nil {
-				h.sendToClient(room.Guest, "ROOM_CLOSED", nil)
+			// Only destroy the room if the game hasn't started yet
+			if !room.GameStarted {
+				if room.Guest != nil {
+					h.sendToClient(room.Guest, "ROOM_CLOSED", nil)
+				}
+				room.mu.Unlock()
+				delete(h.rooms, id)
+				continue
+			} else {
+				// Game already started, just nullify the pointer
+				room.Host = nil
 			}
-			room.mu.Unlock()
-			delete(h.rooms, id)
-			continue
 		} else if room.Guest == client {
 			room.Guest = nil
-			room.GuestReady = false
-			h.sendToClient(room.Host, "GUEST_LEFT", nil)
+			if !room.GameStarted {
+				room.GuestReady = false
+				room.GuestName = ""
+				if room.Host != nil {
+					h.sendToClient(room.Host, "GUEST_LEFT", nil)
+				}
+			}
 		}
 		room.mu.Unlock()
 	}
@@ -154,6 +170,16 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	go client.writePump()
 	go client.readPump()
+}
+
+func (h *Hub) findRoomByClient(c *Client) *Room {
+	// Assumes h.mu is already locked or not needed for the search
+	for _, room := range h.rooms {
+		if room.Host == c || room.Guest == c {
+			return room
+		}
+	}
+	return nil
 }
 
 // Helper methods on Hub
@@ -249,6 +275,14 @@ func (h *Hub) handleMessage(c *Client, data []byte) {
 		} else {
 			log.Println("Failed to unmarshal JOIN_ROOM payload:", string(msg.Payload), err)
 		}
+	case "REJOIN_ROOM":
+		// Called by the /game page after reconnecting to re-associate the client with their room
+		var req struct {
+			ID string `json:"id"`
+		}
+		if err := json.Unmarshal(msg.Payload, &req); err == nil {
+			h.rejoinRoom(c, req.ID)
+		}
 	case "LEAVE_ROOM":
 		h.mu.Lock()
 		h.removeClientFromRooms(c)
@@ -264,29 +298,148 @@ func (h *Hub) handleMessage(c *Client, data []byte) {
 			h.roomChat(c, req.Text)
 		}
 	case "SELECT_DECK":
+		// Legacy: just the deck name
 		var req struct {
 			DeckName string `json:"deckName"`
 		}
 		if err := json.Unmarshal(msg.Payload, &req); err == nil {
-			h.selectDeck(c, req.DeckName)
+			h.selectDeck(c, req.DeckName, nil)
 		}
+	case "SELECT_DECK_DATA":
+		// Full deck data: {deckName: string, deckCards: GameCard[]}
+		var req struct {
+			DeckName  string          `json:"deckName"`
+			DeckCards json.RawMessage `json:"deckCards"`
+		}
+		if err := json.Unmarshal(msg.Payload, &req); err == nil {
+			h.selectDeck(c, req.DeckName, req.DeckCards)
+		}
+	case "GAME_ACTION":
+		// Store state if it's a FULL_SYNC
+		h.mu.Lock()
+		room := h.findRoomByClient(c)
+		if room != nil {
+			var action struct {
+				ActionType string `json:"actionType"`
+			}
+			if err := json.Unmarshal(msg.Payload, &action); err == nil && action.ActionType == "FULL_SYNC" {
+				room.mu.Lock()
+				room.GameState = msg.Payload
+				room.mu.Unlock()
+			}
+		}
+		h.mu.Unlock()
+
+		// Relay verbatim to the other player in the same room
+		h.relayGameAction(c, msg.Payload)
 	}
 }
 
-func (h *Hub) selectDeck(c *Client, deckName string) {
+func (h *Hub) selectDeck(c *Client, deckName string, deckCards json.RawMessage) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
 	for _, room := range h.rooms {
 		room.mu.Lock()
 		if room.Host == c {
-			room.HostDeck = deckName
+			room.HostDeckName = deckName
+			if deckCards != nil {
+				room.HostDeckData = deckCards
+			}
+			// Notify guest of host's deck name
 			h.sendToClient(room.Guest, "OPPONENT_DECK", deckName)
 		} else if room.Guest == c {
-			room.GuestDeck = deckName
+			room.GuestDeckName = deckName
+			if deckCards != nil {
+				room.GuestDeckData = deckCards
+			}
+			// Notify host of guest's deck name
 			h.sendToClient(room.Host, "OPPONENT_DECK", deckName)
 		}
 		room.mu.Unlock()
+	}
+}
+
+// relayGameAction forwards a GAME_ACTION payload to the other player in the room.
+// IMPORTANT: We must release all locks before writing to any client.send channel
+// to prevent deadlocks (writePump also acquires locks in some paths).
+func (h *Hub) relayGameAction(c *Client, payload json.RawMessage) {
+	// Step 1: find target while holding both locks, then release them
+	var target *Client
+	var msgType string = "GAME_ACTION"
+
+	h.mu.Lock()
+	for _, room := range h.rooms {
+		room.mu.Lock()
+		if room.Host == c {
+			target = room.Guest
+		} else if room.Guest == c {
+			target = room.Host
+		}
+		room.mu.Unlock()
+		if target != nil {
+			break
+		}
+	}
+	h.mu.Unlock()
+
+	// Step 2: no locks held — safe to send to channel
+	if target == nil {
+		return
+	}
+
+	// Check for SURRENDER
+	var action struct {
+		ActionType string `json:"actionType"`
+	}
+	if err := json.Unmarshal(payload, &action); err == nil && action.ActionType == "SURRENDER" {
+		msgType = "OPPONENT_SURRENDERED"
+		payload = nil
+	}
+
+	msg := map[string]interface{}{
+		"type":    msgType,
+		"payload": payload,
+	}
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return
+	}
+
+	// Non-blocking send to avoid hanging if target's buffer is full
+	select {
+	case target.send <- data:
+	default:
+		log.Printf("relayGameAction: send buffer full for client %s, dropping message", target.Username)
+	}
+}
+
+// rejoinRoom re-associates a reconnected client (/game page WS) with an active room.
+func (h *Hub) rejoinRoom(c *Client, roomID string) {
+	h.mu.Lock()
+	room, exists := h.rooms[roomID]
+	if !exists {
+		h.mu.Unlock()
+		log.Printf("REJOIN_ROOM: room %s not found\n", roomID)
+		return
+	}
+
+	room.mu.Lock()
+	defer room.mu.Unlock()
+	h.mu.Unlock()
+
+	// Re-associate by username
+	if room.HostName == c.Username {
+		room.Host = c
+		log.Printf("REJOIN_ROOM: %s rejoined as host in room %s\n", c.Username, roomID)
+	} else if room.GuestName == c.Username {
+		room.Guest = c
+		log.Printf("REJOIN_ROOM: %s rejoined as guest in room %s\n", c.Username, roomID)
+	}
+
+	// Send current game state if it exists
+	if room.GameState != nil {
+		h.sendToClient(c, "GAME_ACTION", room.GameState)
 	}
 }
 
@@ -323,6 +476,7 @@ func (h *Hub) createRoom(c *Client, name, password string) {
 		Name:     name,
 		Password: password,
 		Host:     c,
+		HostName: c.Username,
 	}
 	h.rooms[id] = room
 	h.mu.Unlock()
@@ -365,6 +519,7 @@ func (h *Hub) joinRoom(c *Client, id, password string) {
 	room.mu.Lock()
 
 	room.Guest = c
+	room.GuestName = c.Username
 	hostUsername := room.Host.Username
 	roomName := room.Name
 	room.mu.Unlock()
@@ -381,9 +536,16 @@ func (h *Hub) joinRoom(c *Client, id, password string) {
 		"guestName": c.Username,
 	})
 
-	if room.HostDeck != "" {
-		h.sendToClient(c, "OPPONENT_DECK", room.HostDeck)
+	if room.HostDeckName != "" {
+		h.sendToClient(c, "OPPONENT_DECK", room.HostDeckName)
 	}
+
+	// Send current game state if it exists
+	room.mu.Lock()
+	if room.GameState != nil {
+		h.sendToClient(c, "GAME_ACTION", room.GameState)
+	}
+	room.mu.Unlock()
 
 	h.broadcastRooms()
 }
@@ -405,8 +567,23 @@ func (h *Hub) setReady(c *Client) {
 		}
 
 		if room.HostReady && room.GuestReady {
-			h.sendToClient(room.Host, "GAME_START", nil)
-			h.sendToClient(room.Guest, "GAME_START", nil)
+			room.GameStarted = true
+			// Build GAME_START payload for host (host = p1, guest = p2)
+			hostPayload := map[string]interface{}{
+				"roomId":       room.ID,
+				"myRole":       "p1",
+				"opponentName": room.Guest.Username,
+				"opponentDeck": room.GuestDeckData, // guest's deck cards sent to host
+			}
+			// Build GAME_START payload for guest (guest = p2)
+			guestPayload := map[string]interface{}{
+				"roomId":       room.ID,
+				"myRole":       "p2",
+				"opponentName": room.Host.Username,
+				"opponentDeck": room.HostDeckData, // host's deck cards sent to guest
+			}
+			h.sendToClient(room.Host, "GAME_START", hostPayload)
+			h.sendToClient(room.Guest, "GAME_START", guestPayload)
 		}
 		room.mu.Unlock()
 	}

@@ -17,7 +17,7 @@ interface CardProps {
   aspectRatio?: string;
 }
 export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClick, onDoubleClick, aspectRatio = "aspect-[3/4]" }: CardProps) {
-  const { cards } = useGameStore();
+  const { cards, myRole } = useGameStore();
   const { t } = useLanguage();
   const [imageLoaded, setImageLoaded] = React.useState(false);
 
@@ -25,7 +25,7 @@ export function Card({ card, zone, isOverlay, isStatic, onHover, onLeave, onClic
   const { attributes, listeners, setNodeRef: setDragRef, transform, isDragging } = useDraggable({
     id: dragId,
     data: { card, fromZone: zone },
-    disabled: isStatic || isOverlay,
+    disabled: isStatic || isOverlay || card.owner !== myRole,
   });
 
   const { isOver, setNodeRef: setDropRef } = useDroppable({

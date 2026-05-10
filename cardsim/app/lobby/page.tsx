@@ -3,6 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { WS_URL } from "../../lib/api";
+import { saveGameSocket } from "../../lib/gameSocket";
+import { GameCard, PlayerId } from "../../store/gameStore";
 
 type RoomInfo = {
   id: string;
@@ -46,11 +48,15 @@ export default function LobbyPage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
 
-  const [decks, setDecks] = useState<{id: string, name: string}[]>([]);
+  const [decks, setDecks] = useState<{id: string, name: string, mainDeck?: any[], gZone?: any[], hyperspatial?: any[]}[]>([]);
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
   const [opponentDeckName, setOpponentDeckName] = useState<string>("");
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  // Refs so the WS message handler always reads current state (avoids stale closures)
+  const currentRoomRef = useRef<JoinedRoomInfo | null>(null);
+  const selectedDeckIdRef = useRef<string>("");
+  const decksRef = useRef<typeof decks>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("cardsim_decks");
@@ -58,12 +64,19 @@ export default function LobbyPage() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          // Store full deck objects (including card arrays)
           setDecks(parsed);
+          decksRef.current = parsed;
           setSelectedDeckId(parsed[0].id);
+          selectedDeckIdRef.current = parsed[0].id;
         }
       } catch (e) {}
     }
   }, []);
+
+  // Keep refs in sync with state for use inside WS handler closures
+  useEffect(() => { selectedDeckIdRef.current = selectedDeckId; }, [selectedDeckId]);
+  useEffect(() => { decksRef.current = decks; }, [decks]);
 
   useEffect(() => {
     if (chatEndRef.current) {
@@ -77,6 +90,9 @@ export default function LobbyPage() {
       router.push("/auth");
       return;
     }
+
+    // Flag: set to true right before navigating to /game so cleanup doesn't close the socket
+    let navigatingToGame = false;
 
     const socket = new WebSocket(`${WS_URL}?token=${token}`);
     socket.onopen = () => {
@@ -96,15 +112,28 @@ export default function LobbyPage() {
     };
 
     setWs(socket);
+    // Make the flag accessible inside the GAME_START case via closure
+    (socket as any)._setNavigatingToGame = (v: boolean) => { navigatingToGame = v; };
 
-    return () => socket.close();
+    return () => {
+      // Only close if NOT transitioning to game — otherwise keep the socket alive
+      if (!navigatingToGame) socket.close();
+    };
   }, [router]);
 
   useEffect(() => {
     if (currentRoom && selectedDeckId && ws && ws.readyState === WebSocket.OPEN) {
       const d = decks.find(deck => deck.id === selectedDeckId);
       if (d) {
-        ws.send(JSON.stringify({ type: "SELECT_DECK", payload: { deckName: d.name } }));
+        // Send both the deck name (for the lobby UI) AND the full card data
+        // so the backend can relay it to the opponent via GAME_START
+        ws.send(JSON.stringify({
+          type: "SELECT_DECK_DATA",
+          payload: {
+            deckName: d.name,
+            deckCards: d.mainDeck || []
+          }
+        }));
       }
     }
   }, [currentRoom?.id, selectedDeckId, ws]);
@@ -116,6 +145,7 @@ export default function LobbyPage() {
         break;
       case "ROOM_CREATED":
       case "ROOM_JOINED":
+        currentRoomRef.current = msg.payload;
         setCurrentRoom(msg.payload);
         setAmIReady(false);
         setIsOpponentReady(false);
@@ -123,16 +153,25 @@ export default function LobbyPage() {
         setOpponentDeckName("");
         break;
       case "GUEST_JOINED":
-        setCurrentRoom((prev) => prev ? { ...prev, guestName: msg.payload.guestName } : null);
+        setCurrentRoom((prev) => {
+          const updated = prev ? { ...prev, guestName: msg.payload.guestName } : null;
+          currentRoomRef.current = updated;
+          return updated;
+        });
         break;
       case "GUEST_LEFT":
-        setCurrentRoom((prev) => prev ? { ...prev, guestName: undefined, guestReady: false, hostReady: false } : null);
+        setCurrentRoom((prev) => {
+          const updated = prev ? { ...prev, guestName: undefined, guestReady: false, hostReady: false } : null;
+          currentRoomRef.current = updated;
+          return updated;
+        });
         setIsOpponentReady(false);
         setAmIReady(false);
         setOpponentDeckName("");
         setMessages((prev) => [...prev, "Opponent left the room."]);
         break;
       case "ROOM_CLOSED":
+        currentRoomRef.current = null;
         setCurrentRoom(null);
         setAmIReady(false);
         setIsOpponentReady(false);
@@ -155,10 +194,66 @@ export default function LobbyPage() {
       case "CHAT_MESSAGE":
         setChatMessages((prev) => [...prev, msg.payload]);
         break;
-      case "GAME_START":
-        alert("GAME STARTING!");
-        router.push("/game"); // Navigate to actual game component
+      case "GAME_START": {
+        // Build the full game session and store it for the /game page
+        // Use refs to avoid stale closure values
+        const roomSnapshot = currentRoomRef.current;
+        const deckIdSnapshot = selectedDeckIdRef.current;
+        const decksSnapshot = decksRef.current;
+
+        const myUsername = (() => {
+          try {
+            const token = localStorage.getItem("cardsim_token");
+            if (token) { const p = JSON.parse(atob(token.split('.')[1])); return p.username || ""; }
+          } catch {}
+          return "";
+        })();
+
+        // Prefer backend-provided values from GAME_START payload (most reliable)
+        const myRole: PlayerId = (msg.payload?.myRole as PlayerId) || (roomSnapshot?.isHost ? 'p1' : 'p2');
+        const opponentName: string = msg.payload?.opponentName || (
+          roomSnapshot?.isHost
+            ? (roomSnapshot?.guestName || "Opponent")
+            : (roomSnapshot?.hostName || "Opponent")
+        );
+        const roomId: string = msg.payload?.roomId || roomSnapshot?.id || "";
+
+        // Look up MY deck cards from in-memory ref
+        let myDeckCards: GameCard[] = [];
+        const myDeck = decksSnapshot.find((d: any) => d.id === deckIdSnapshot);
+        if (myDeck) {
+          myDeckCards = myDeck.mainDeck || [];
+        }
+
+        // Opponent deck — backend sends it in GAME_START payload
+        const opponentDeckCards: GameCard[] = msg.payload?.opponentDeck || [];
+
+        const session = {
+          myRole,
+          myName: myUsername,
+          opponentName,
+          myDeckCards,
+          opponentDeckCards,
+        };
+
+        // Mark the socket as "kept alive" so the cleanup doesn't close it
+        if ((ws as any)?._setNavigatingToGame) (ws as any)._setNavigatingToGame(true);
+        // Save the socket in the module-level store so /game can pick it up
+        if (ws) saveGameSocket(ws);
+
+        // ─── CRITICAL: Clear the lobby's own WS handlers before navigating ───
+        // This prevents the lobby's onmessage from intercepting GAME_ACTION
+        // messages that belong exclusively to the game page.
+        if (ws) {
+          ws.onmessage = null;
+          ws.onclose = null;
+        }
+
+        sessionStorage.setItem("cardsim_game_session", JSON.stringify(session));
+        sessionStorage.setItem("cardsim_game_roomId", roomId);
+        router.push("/game");
         break;
+      }
       default:
         console.log("Unhandled via json:", msg);
         break;

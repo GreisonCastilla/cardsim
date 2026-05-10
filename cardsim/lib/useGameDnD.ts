@@ -12,6 +12,8 @@ interface DnDProps {
     setActiveCard: (card: GameCard | null) => void;
     setPreviewCard: (card: GameCard | null) => void;
     previewTimerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+    isMyTurn: boolean;
+    myRole: string;
 }
 
 export function useGameDnD({
@@ -22,10 +24,17 @@ export function useGameDnD({
     setActiveCard,
     setPreviewCard,
     previewTimerRef,
+    isMyTurn,
+    myRole,
 }: DnDProps) {
     const isDragging = useRef(false);
 
     const handleDragStart = useCallback((e: DragStartEvent) => {
+        if (!isMyTurn) {
+            showNotification("¡No es tu turno!", "error");
+            return;
+        }
+
         setPreviewCard(null);
         if (previewTimerRef.current) {
             clearTimeout(previewTimerRef.current);
@@ -34,15 +43,21 @@ export function useGameDnD({
 
         const card = e.active.data.current?.card as GameCard | undefined;
         if (card) {
+            if (card.owner !== myRole) {
+                showNotification("¡No puedes mover las cartas del rival!", "error");
+                return;
+            }
             setActiveCard(card);
             isDragging.current = true;
         }
-    }, [setActiveCard, setPreviewCard, previewTimerRef]);
+    }, [setActiveCard, setPreviewCard, previewTimerRef, isMyTurn, myRole, showNotification]);
 
     const handleDragEnd = useCallback((e: DragEndEvent) => {
         const { active, over } = e;
         setActiveCard(null);
         setTimeout(() => { isDragging.current = false; }, 50);
+
+        if (!isMyTurn) return;
 
         const cardId = active.id as string;
 
@@ -70,6 +85,11 @@ export function useGameDnD({
 
         if (!toZone) return;
 
+        if (!toZone.startsWith(myRole)) {
+            showNotification("¡No puedes colocar cartas en el campo del rival!", "error");
+            return;
+        }
+
         // 3. Handle Linking (EXLife) vs Moving
         const isFromDeck = fromZone.includes('mainDeck');
         const isTargetInBattle = toZone.includes('attackZone');
@@ -92,7 +112,7 @@ export function useGameDnD({
             // Logic for dropping on a zone
             moveCard(cardId, fromZone, toZone);
         }
-    }, [zones, moveCard, linkCard, showNotification, setActiveCard]);
+    }, [zones, moveCard, linkCard, showNotification, setActiveCard, myRole]);
 
     const handleDragCancel = useCallback(() => {
         setActiveCard(null);

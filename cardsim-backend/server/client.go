@@ -12,7 +12,7 @@ const (
 	writeWait      = 10 * time.Second
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
-	maxMessageSize = 2048 // Increased to handle JSON
+	maxMessageSize = 1024 * 512 // 512 KB — large enough for deck + game action payloads
 )
 
 var (

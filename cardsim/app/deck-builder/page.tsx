@@ -5,7 +5,7 @@ import { fetchCards, fetchDecks, saveDeck, deleteDeck } from "../../lib/api";
 import { GameCard, CardPosition, CardFace, PlayerId } from "../../store/gameStore";
 import { Card } from "../../components/Card";
 import { cn } from "../../lib/utils";
-import { Search, ChevronLeft, ChevronRight, Save, Trash2, LayoutGrid, Layers, Zap, Info, Filter, Plus, Minus, FileText } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Save, Trash2, LayoutGrid, Layers, Zap, Info, Filter, Plus, Minus, FileText, Columns2, PanelTop } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "../../components/LanguageContext";
 
@@ -35,6 +35,11 @@ export default function DeckBuilder() {
   const [activeCardKey, setActiveCardKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [viewMode, setViewMode] = useState<'split' | 'tabbed'>('split');
+  const [activeTab, setActiveTab] = useState<'main' | 'g' | 'hyper'>('main');
+
+  // In tabbed mode, the target zone always follows the active tab
+  const effectiveZone = viewMode === 'tabbed' ? activeTab : targetZone;
 
   useEffect(() => {
     const initDecks = async () => {
@@ -330,6 +335,21 @@ export default function DeckBuilder() {
             </div>
 
             <div className="flex gap-1 items-center">
+                {/* View mode toggle */}
+                <button
+                  onClick={() => setViewMode(m => m === 'split' ? 'tabbed' : 'split')}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all border font-bold text-xs shadow-lg active:scale-95",
+                    viewMode === 'tabbed'
+                      ? "bg-indigo-600/30 text-indigo-300 border-indigo-500/40 hover:bg-indigo-600 hover:text-white"
+                      : "bg-slate-700/30 text-slate-400 border-white/10 hover:bg-slate-700 hover:text-white"
+                  )}
+                  title={viewMode === 'split' ? t("タブビュー", "Tab View") : t("分割ビュー", "Split View")}
+                >
+                  {viewMode === 'split' ? <PanelTop className="w-4 h-4" /> : <Columns2 className="w-4 h-4" />}
+                  <span className="hidden lg:inline">{viewMode === 'split' ? t("タブ", "Tab View") : t("分割", "Split View")}</span>
+                </button>
+                <div className="w-[1px] h-6 bg-white/10" />
                 <button 
                   onClick={manualSave} 
                   disabled={isSaving}
@@ -367,86 +387,14 @@ export default function DeckBuilder() {
         </div>
       </header>
       
-      <main className="flex-1 grid grid-cols-12 gap-4 overflow-hidden min-h-0">
+      <main className="flex-1 grid grid-cols-12 gap-2 overflow-hidden min-h-0">
         
-        {/* Collection & Details (Left Panel) */}
-        <section className="col-span-12 lg:col-span-4 flex flex-col gap-4 overflow-hidden">
-          
-          {/* Collection */}
-          <div className="flex flex-col flex-1 bg-slate-900/30 rounded-2xl border border-white/5 p-4 overflow-hidden backdrop-blur-sm shadow-inner shrink-0">
-            <div className="relative group mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
-              <input 
-                type="text" 
-                placeholder={t("カードを検索...", "Search cards...")} 
-                className="w-full bg-slate-800/60 border border-white/5 rounded-xl py-2 pl-9 pr-3 focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-medium transition-all placeholder:text-slate-600 backdrop-blur-sm text-xs"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-            </div>
-
-            <div className="flex justify-between items-center mb-1 px-1">
-              <p className="text-[9px] text-slate-400 font-bold uppercase">{total} {t("結果", "Results")}</p>
-              <div className="flex items-center gap-1">
-                  <button disabled={page === 1} className="p-1 hover:bg-slate-800 rounded disabled:opacity-30" onClick={() => setPage(p => p - 1)}><ChevronLeft className="w-3 h-3" /></button>
-                  <span className="text-[10px] font-black text-blue-400 w-10 text-center">{page} / {totalPages || 1}</span>
-                  <button disabled={page === totalPages || totalPages === 0} className="p-1 hover:bg-slate-800 rounded disabled:opacity-30" onClick={() => setPage(p => p + 1)}><ChevronRight className="w-3 h-3" /></button>
-              </div>
-            </div>
-
-            <div className="flex gap-1 mb-3 bg-slate-800/50 p-1 rounded-lg border border-white/5">
-                <button 
-                    onClick={() => setTargetZone("main")}
-                    className={`flex-1 py-1 px-2 rounded-md text-[9px] font-bold uppercase transition-all ${targetZone === 'main' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-700/50'}`}
-                >
-                    Main
-                </button>
-                <button 
-                    onClick={() => setTargetZone("g")}
-                    className={`flex-1 py-1 px-2 rounded-md text-[9px] font-bold uppercase transition-all ${targetZone === 'g' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-700/50'}`}
-                >
-                    G-Zone
-                </button>
-                <button 
-                    onClick={() => setTargetZone("hyper")}
-                    className={`flex-1 py-1 px-2 rounded-md text-[9px] font-bold uppercase transition-all ${targetZone === 'hyper' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-700/50'}`}
-                >
-                    Hyper
-                </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar p-3">
-              <div className="grid grid-cols-5 sm:grid-cols-6 gap-2">
-                <AnimatePresence mode="popLayout">
-                  {availableCards.map(c => (
-                    <motion.div 
-                      layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      key={c.id} 
-                      className="group relative h-full flex flex-col"
-                    >
-                      <div 
-                          onClick={() => { setSelectedCard(c); addCard(c, targetZone); }}
-                          onMouseEnter={() => setSelectedCard(c)}
-                          className="relative group cursor-pointer transition-all hover:scale-125 hover:z-[100] z-10 aspect-[3/4]"
-                      >
-                          <Card card={c} isStatic />
-                          <div className={`absolute inset-0 border rounded-sm pointer-events-none transition-colors ${selectedCard?.id === c.id ? 'border-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'border-transparent group-hover:border-blue-500/50'}`} />
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
-
-          {/* Details Panel - Always Visible */}
-          <div className="bg-slate-800/80 border border-white/10 rounded-2xl p-5 shadow-xl shrink-0 h-[48%] flex flex-col gap-4 overflow-hidden animate-in fade-in slide-in-from-bottom-4">
+        {/* LEFT: Card Details Panel */}
+        <section className="col-span-12 lg:col-span-3 flex flex-col overflow-hidden">
+          <div className="flex-1 bg-slate-800/80 border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col gap-4 overflow-hidden animate-in fade-in slide-in-from-bottom-4">
             {selectedCard ? (
-              <div className="flex gap-8 overflow-hidden flex-1 items-center">
-                <div className="w-52 shrink-0 transition-all hover:scale-[1.02] duration-500 group">
+              <div className="flex flex-col overflow-hidden flex-1 gap-4">
+                <div className="shrink-0 transition-all hover:scale-[1.02] duration-500 group mx-auto w-full max-w-[260px]">
                     {selectedCard.image ? (
                         <img 
                             src={selectedCard.image} 
@@ -460,11 +408,11 @@ export default function DeckBuilder() {
                         </div>
                     )}
                 </div>
-                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2">
+                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2 min-h-0">
                     <div>
                         <h3 className="text-xs font-black text-white leading-tight mb-1">{selectedCard.nameJa && selectedCard.nameEn ? (language === 'ja' ? selectedCard.nameJa : selectedCard.nameEn) : selectedCard.name}</h3>
                     </div>
-                    <div className="flex gap-2 text-[10px] font-bold text-slate-300">
+                    <div className="flex flex-wrap gap-2 text-[10px] font-bold text-slate-300">
                         <div className="bg-slate-900/50 px-2 py-0.5 rounded border border-white/5 flex items-center gap-1 text-yellow-400 uppercase">
                             {t("コスト", "Cost")}: <span className="text-white">{selectedCard.manaCost}</span>
                         </div>
@@ -490,164 +438,312 @@ export default function DeckBuilder() {
             )}
           </div>
         </section>
-        
-        {/* Deck Construction Zones (Right Panel) */}
-        <section className="col-span-12 lg:col-span-8 flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar h-full">
-          
-          {/* Main Deck zone */}
-          <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 transition-all flex flex-col group relative flex-[2] min-h-[400px]">
-            <div className="flex justify-between items-center mb-3">
-                <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-blue-400" />
-                    <h3 className="font-black text-white tracking-tight uppercase text-xs">{t("メインデッキ", "Main Deck")}</h3>
-                </div>
-                <div className="bg-slate-800/80 px-3 py-1 rounded-full border border-white/5 shadow-inner">
-                    <span className="text-[10px] font-black text-blue-400">{currentDeck.mainDeck.length}</span>
-                </div>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-10 2xl:grid-cols-12 gap-4 content-start pb-8">
-                   {groupedMain.map(({card, count}) => (
-                        <motion.div 
-                            layout
-                            key={card.id} 
-                            className="relative aspect-[3/4] flex flex-col items-center"
-                        >
-                            <div 
-                                className="w-full h-full relative group shadow-md rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all" 
-                                onClick={() => { setSelectedCard(card); addCard(card, "main"); }}
-                                onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("main_" + card.id); }}
-                                onMouseLeave={() => setActiveCardKey(null)}
-                                onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "main"); }}
-                            >
-                                <Card card={card} isStatic />
-                                
-                                {/* Quantity controls appear only if actively hovered */}
-                                <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-xl overflow-hidden px-1 w-[90%] mx-auto transition-all ${activeCardKey === "main_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                                    <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "main"); }}>
-                                        <Minus className="w-2.5 h-2.5" />
-                                    </button>
-                                    <span className="text-[8px] font-black w-3 text-center text-white">{count}</span>
-                                    <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "main"); }}>
-                                        <Plus className="w-2.5 h-2.5" />
-                                    </button>
-                                </div>
 
-                                {/* Quantity badge with pulse animation */}
-                                <motion.div 
-                                    key={`count-${count}`}
-                                    initial={{ scale: 1.5, opacity: 0.5 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="absolute -top-2 -right-2 z-[120] bg-blue-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50"
+        {/* CENTER: Deck Construction Zones */}
+        <section className="col-span-12 lg:col-span-6 flex flex-col gap-2 overflow-hidden h-full">
+
+          {viewMode === 'split' ? (
+            /* ── SPLIT VIEW: all zones stacked ── */
+            <div className="flex flex-col gap-2 overflow-y-auto pr-1 custom-scrollbar flex-1 min-h-0">
+              {/* Main Deck */}
+              <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 flex flex-col group relative flex-[2] min-h-[350px]">
+                <div className="flex justify-between items-center mb-3">
+                    <div className="flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-blue-400" />
+                        <h3 className="font-black text-white tracking-tight uppercase text-xs">{t("メインデッキ", "Main Deck")}</h3>
+                    </div>
+                    <div className="bg-slate-800/80 px-3 py-1 rounded-full border border-white/5 shadow-inner">
+                        <span className="text-[10px] font-black text-blue-400">{currentDeck.mainDeck.length}</span>
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                    <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-7 2xl:grid-cols-8 gap-2 content-start pb-4">
+                       {groupedMain.map(({card, count}) => (
+                            <motion.div layout key={card.id} className="relative aspect-[3/4] flex flex-col items-center">
+                                <div className="w-full h-full relative group shadow-md rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all"
+                                    onClick={() => { setSelectedCard(card); addCard(card, "main"); }}
+                                    onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("main_" + card.id); }}
+                                    onMouseLeave={() => setActiveCardKey(null)}
+                                    onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "main"); }}
                                 >
-                                    {count}
+                                    <Card card={card} isStatic />
+                                    <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-xl overflow-hidden px-1 w-[90%] mx-auto transition-all ${activeCardKey === "main_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                                        <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "main"); }}><Minus className="w-2.5 h-2.5" /></button>
+                                        <span className="text-[8px] font-black w-3 text-center text-white">{count}</span>
+                                        <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "main"); }}><Plus className="w-2.5 h-2.5" /></button>
+                                    </div>
+                                    <motion.div key={`count-${count}`} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="absolute -top-2 -right-2 z-[120] bg-blue-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50">{count}</motion.div>
+                                </div>
+                           </motion.div>
+                       ))}
+                    </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 shrink-0 min-h-[200px]">
+                  {/* G-Zone */}
+                  <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 flex flex-col transition-all group">
+                    <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2"><Layers className="w-4 h-4 text-emerald-400" /><h3 className="font-black text-[10px] text-emerald-400 uppercase tracking-tighter">G-Zone</h3></div>
+                        <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full font-black text-emerald-400 border border-emerald-500/20">{currentDeck.gZone.length}</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 content-start pb-4">
+                            {groupedGZone.map(({card, count}) => (
+                                <motion.div layout key={card.id} className="relative aspect-[3/4] flex flex-col items-center">
+                                    <div className="w-full h-full relative group shadow-sm rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all"
+                                        onClick={() => { setSelectedCard(card); addCard(card, "g"); }}
+                                        onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("g_" + card.id); }}
+                                        onMouseLeave={() => setActiveCardKey(null)}
+                                        onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "g"); }}
+                                    >
+                                        <Card card={card} isStatic aspectRatio="aspect-[3/4]" />
+                                        <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-lg overflow-hidden px-1 w-[95%] mx-auto transition-all ${activeCardKey === "g_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                                            <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "g"); }}><Minus className="w-2 h-2" /></button>
+                                            <span className="text-[7px] font-black w-2 text-center text-white">{count}</span>
+                                            <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "g"); }}><Plus className="w-2 h-2" /></button>
+                                        </div>
+                                        <motion.div key={`count-${count}`} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="absolute -top-2 -right-2 z-[120] bg-emerald-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50">{count}</motion.div>
+                                    </div>
                                 </motion.div>
-                            </div>
-                       </motion.div>
-                   ))}
-                </div>
+                            ))}
+                        </div>
+                    </div>
+                  </div>
+
+                  {/* Hyperspatial */}
+                  <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 flex flex-col transition-all group">
+                    <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2"><Zap className="w-4 h-4 text-purple-400" /><h3 className="font-black text-[10px] text-purple-400 uppercase tracking-tighter">Hyper</h3></div>
+                        <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full font-black text-purple-400 border border-purple-500/20">{currentDeck.hyperspatial.length}</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 content-start pb-4">
+                            {groupedHyper.map(({card, count}) => (
+                                <motion.div layout key={`${card.name}-${card.image}`} className="relative aspect-[3/4] flex flex-col items-center">
+                                    <div className="w-full h-full relative group shadow-sm rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all"
+                                        onClick={() => { setSelectedCard(card); addCard(card, "hyper"); }}
+                                        onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("hyper_" + card.id); }}
+                                        onMouseLeave={() => setActiveCardKey(null)}
+                                        onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "hyper"); }}
+                                    >
+                                        <Card card={card} isStatic aspectRatio="aspect-[3/4]" />
+                                        <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-lg overflow-hidden px-1 w-[95%] mx-auto transition-all ${activeCardKey === "hyper_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                                            <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "hyper"); }}><Minus className="w-2 h-2" /></button>
+                                            <span className="text-[7px] font-black w-2 text-center text-white">{count}</span>
+                                            <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "hyper"); }}><Plus className="w-2 h-2" /></button>
+                                        </div>
+                                        <motion.div key={`count-${count}`} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="absolute -top-2 -right-2 z-[120] bg-purple-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50">{count}</motion.div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                  </div>
+              </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 h-[250px] min-h-[220px] shrink-0">
-              {/* G-Zone */}
-              <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 flex flex-col transition-all group">
-                <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-emerald-400" />
-                        <h3 className="font-black text-[10px] text-emerald-400 uppercase tracking-tighter shadow-emerald-500/10 hover:text-emerald-300">G-Zone</h3>
-                    </div>
-                    <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full font-black text-emerald-400 border border-emerald-500/20">{currentDeck.gZone.length}</span>
-                </div>
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                    <div className="grid grid-cols-5 sm:grid-cols-6 gap-3 content-start pb-8">
-                        {groupedGZone.map(({card, count}) => (
-                            <motion.div 
-                                layout
-                                key={card.id} 
-                                className="relative aspect-[3/4] flex flex-col items-center"
-                            >
-                                <div 
-                                    className="w-full h-full relative group shadow-sm rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all" 
-                                    onClick={() => { setSelectedCard(card); addCard(card, "g"); }}
-                                    onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("g_" + card.id); }}
-                                    onMouseLeave={() => setActiveCardKey(null)}
-                                    onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "g"); }}
-                                >
-                                    <Card card={card} isStatic aspectRatio="aspect-[3/4]" />
-                                    
-                                    {/* Quantity controls appear only if actively hovered */}
-                                    <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-lg overflow-hidden px-1 w-[95%] mx-auto transition-all ${activeCardKey === "g_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                                        <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "g"); }}><Minus className="w-2 h-2" /></button>
-                                        <span className="text-[7px] font-black w-2 text-center text-white">{count}</span>
-                                        <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "g"); }}><Plus className="w-2 h-2" /></button>
-                                    </div>
-
-                                    {/* Quantity badge with pulse animation */}
-                                    <motion.div 
-                                        key={`count-${count}`}
-                                        initial={{ scale: 1.5, opacity: 0.5 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        className="absolute -top-2 -right-2 z-[120] bg-emerald-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50"
-                                    >
-                                        {count}
-                                    </motion.div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
+          ) : (
+            /* ── TABBED VIEW: one zone at a time ── */
+            <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Tab bar */}
+              <div className="flex gap-1 bg-slate-900/60 p-1 rounded-xl border border-white/5 shrink-0 mb-2">
+                <button
+                  onClick={() => setActiveTab('main')}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wide transition-all",
+                    activeTab === 'main'
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                  )}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  {t("メインデッキ", "Main Deck")}
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-black", activeTab === 'main' ? "bg-white/20 text-white" : "bg-slate-800 text-blue-400")}>{currentDeck.mainDeck.length}</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('g')}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wide transition-all",
+                    activeTab === 'g'
+                      ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/20"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                  )}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  G-Zone
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-black", activeTab === 'g' ? "bg-white/20 text-white" : "bg-slate-800 text-emerald-400")}>{currentDeck.gZone.length}</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('hyper')}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wide transition-all",
+                    activeTab === 'hyper'
+                      ? "bg-purple-600 text-white shadow-lg shadow-purple-500/20"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                  )}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  Hyper
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-black", activeTab === 'hyper' ? "bg-white/20 text-white" : "bg-slate-800 text-purple-400")}>{currentDeck.hyperspatial.length}</span>
+                </button>
               </div>
 
-              {/* Hyperspatial */}
-              <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 flex flex-col transition-all group">
-                <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-purple-400" />
-                        <h3 className="font-black text-[10px] text-purple-400 uppercase tracking-tighter hover:text-purple-300">Hyper</h3>
+              {/* Tab content */}
+              <AnimatePresence mode="wait">
+                {activeTab === 'main' && (
+                  <motion.div key="tab-main" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.15 }}
+                    className="flex-1 bg-slate-900/40 border border-slate-700/50 rounded-2xl p-3 overflow-y-auto custom-scrollbar min-h-0"
+                  >
+                    <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 2xl:grid-cols-9 gap-2 content-start pb-4">
+                      {groupedMain.map(({card, count}) => (
+                        <motion.div layout key={card.id} className="relative aspect-[3/4] flex flex-col items-center">
+                          <div className="w-full h-full relative group shadow-md rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all"
+                            onClick={() => { setSelectedCard(card); addCard(card, "main"); }}
+                            onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("main_" + card.id); }}
+                            onMouseLeave={() => setActiveCardKey(null)}
+                            onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "main"); }}
+                          >
+                            <Card card={card} isStatic />
+                            <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-xl overflow-hidden px-1 w-[90%] mx-auto transition-all ${activeCardKey === "main_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                              <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "main"); }}><Minus className="w-2.5 h-2.5" /></button>
+                              <span className="text-[8px] font-black w-3 text-center text-white">{count}</span>
+                              <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "main"); }}><Plus className="w-2.5 h-2.5" /></button>
+                            </div>
+                            <motion.div key={`count-${count}`} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="absolute -top-2 -right-2 z-[120] bg-blue-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50">{count}</motion.div>
+                          </div>
+                        </motion.div>
+                      ))}
                     </div>
-                    <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full font-black text-purple-400 border border-purple-500/20">{currentDeck.hyperspatial.length}</span>
-                </div>
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                    <div className="grid grid-cols-5 sm:grid-cols-6 gap-3 content-start pb-8">
-                        {groupedHyper.map(({card, count}) => (
-                            <motion.div 
-                                layout
-                                key={`${card.name}-${card.image}`} 
-                                className="relative aspect-[3/4] flex flex-col items-center"
-                            >
-                                <div 
-                                    className="w-full h-full relative group shadow-sm rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all" 
-                                    onClick={() => { setSelectedCard(card); addCard(card, "hyper"); }}
-                                    onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("hyper_" + card.id); }}
-                                    onMouseLeave={() => setActiveCardKey(null)}
-                                    onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "hyper"); }}
-                                >
-                                    <Card card={card} isStatic aspectRatio="aspect-[3/4]" />
-                                    
-                                    {/* Quantity controls appear only if actively hovered */}
-                                    <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-lg overflow-hidden px-1 w-[95%] mx-auto transition-all ${activeCardKey === "hyper_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                                        <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "hyper"); }}><Minus className="w-2 h-2" /></button>
-                                        <span className="text-[7px] font-black w-2 text-center text-white">{count}</span>
-                                        <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "hyper"); }}><Plus className="w-2 h-2" /></button>
-                                    </div>
+                  </motion.div>
+                )}
+                {activeTab === 'g' && (
+                  <motion.div key="tab-g" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.15 }}
+                    className="flex-1 bg-slate-900/40 border border-slate-700/50 border-emerald-700/30 rounded-2xl p-3 overflow-y-auto custom-scrollbar min-h-0"
+                  >
+                    <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 2xl:grid-cols-9 gap-2 content-start pb-4">
+                      {groupedGZone.map(({card, count}) => (
+                        <motion.div layout key={card.id} className="relative aspect-[3/4] flex flex-col items-center">
+                          <div className="w-full h-full relative group shadow-sm rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all"
+                            onClick={() => { setSelectedCard(card); addCard(card, "g"); }}
+                            onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("g_" + card.id); }}
+                            onMouseLeave={() => setActiveCardKey(null)}
+                            onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "g"); }}
+                          >
+                            <Card card={card} isStatic aspectRatio="aspect-[3/4]" />
+                            <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-lg overflow-hidden px-1 w-[95%] mx-auto transition-all ${activeCardKey === "g_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                              <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "g"); }}><Minus className="w-2 h-2" /></button>
+                              <span className="text-[7px] font-black w-2 text-center text-white">{count}</span>
+                              <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "g"); }}><Plus className="w-2 h-2" /></button>
+                            </div>
+                            <motion.div key={`count-${count}`} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="absolute -top-2 -right-2 z-[120] bg-emerald-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50">{count}</motion.div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+                {activeTab === 'hyper' && (
+                  <motion.div key="tab-hyper" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.15 }}
+                    className="flex-1 bg-slate-900/40 border border-slate-700/50 border-purple-700/30 rounded-2xl p-3 overflow-y-auto custom-scrollbar min-h-0"
+                  >
+                    <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 2xl:grid-cols-9 gap-2 content-start pb-4">
+                      {groupedHyper.map(({card, count}) => (
+                        <motion.div layout key={`${card.name}-${card.image}`} className="relative aspect-[3/4] flex flex-col items-center">
+                          <div className="w-full h-full relative group shadow-sm rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all"
+                            onClick={() => { setSelectedCard(card); addCard(card, "hyper"); }}
+                            onMouseEnter={() => { setSelectedCard(card); setActiveCardKey("hyper_" + card.id); }}
+                            onMouseLeave={() => setActiveCardKey(null)}
+                            onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "hyper"); }}
+                          >
+                            <Card card={card} isStatic aspectRatio="aspect-[3/4]" />
+                            <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-lg overflow-hidden px-1 w-[95%] mx-auto transition-all ${activeCardKey === "hyper_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                              <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "hyper"); }}><Minus className="w-2 h-2" /></button>
+                              <span className="text-[7px] font-black w-2 text-center text-white">{count}</span>
+                              <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "hyper"); }}><Plus className="w-2 h-2" /></button>
+                            </div>
+                            <motion.div key={`count-${count}`} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="absolute -top-2 -right-2 z-[120] bg-purple-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50">{count}</motion.div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </section>
 
-                                    {/* Quantity badge with pulse animation */}
-                                    <motion.div 
-                                        key={`count-${count}`}
-                                        initial={{ scale: 1.5, opacity: 0.5 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        className="absolute -top-2 -right-2 z-[120] bg-purple-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50"
-                                    >
-                                        {count}
-                                    </motion.div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
+        {/* RIGHT: Card Library / Collection */}
+        <section className="col-span-12 lg:col-span-3 flex flex-col overflow-hidden">
+          <div className="flex flex-col flex-1 bg-slate-900/30 rounded-2xl border border-white/5 p-4 overflow-hidden backdrop-blur-sm shadow-inner">
+            <div className="relative group mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+              <input 
+                type="text" 
+                placeholder={t("カードを検索...", "Search cards...")} 
+                className="w-full bg-slate-800/60 border border-white/5 rounded-xl py-2 pl-9 pr-3 focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-medium transition-all placeholder:text-slate-600 backdrop-blur-sm text-xs"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-between items-center mb-1 px-1">
+              <p className="text-[9px] text-slate-400 font-bold uppercase">{total} {t("結果", "Results")}</p>
+              <div className="flex items-center gap-1">
+                  <button disabled={page === 1} className="p-1 hover:bg-slate-800 rounded disabled:opacity-30" onClick={() => setPage(p => p - 1)}><ChevronLeft className="w-3 h-3" /></button>
+                  <span className="text-[10px] font-black text-blue-400 w-10 text-center">{page} / {totalPages || 1}</span>
+                  <button disabled={page === totalPages || totalPages === 0} className="p-1 hover:bg-slate-800 rounded disabled:opacity-30" onClick={() => setPage(p => p + 1)}><ChevronRight className="w-3 h-3" /></button>
               </div>
+            </div>
+
+            {/* Zone selector: only shown in split mode */}
+            {viewMode === 'split' && (
+              <div className="flex gap-1 mb-2 bg-slate-800/50 p-1 rounded-lg border border-white/5">
+                  <button onClick={() => setTargetZone("main")} className={`flex-1 py-1 px-2 rounded-md text-[9px] font-bold uppercase transition-all ${targetZone === 'main' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-700/50'}`}>Main</button>
+                  <button onClick={() => setTargetZone("g")} className={`flex-1 py-1 px-2 rounded-md text-[9px] font-bold uppercase transition-all ${targetZone === 'g' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-700/50'}`}>G-Zone</button>
+                  <button onClick={() => setTargetZone("hyper")} className={`flex-1 py-1 px-2 rounded-md text-[9px] font-bold uppercase transition-all ${targetZone === 'hyper' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-700/50'}`}>Hyper</button>
+              </div>
+            )}
+
+            {/* In tabbed mode show which zone is active */}
+            {viewMode === 'tabbed' && (
+              <div className={cn(
+                "flex items-center gap-2 mb-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide border",
+                activeTab === 'main' ? "bg-blue-600/20 border-blue-500/30 text-blue-300" :
+                activeTab === 'g' ? "bg-emerald-600/20 border-emerald-500/30 text-emerald-300" :
+                "bg-purple-600/20 border-purple-500/30 text-purple-300"
+              )}>
+                {activeTab === 'main' ? <Zap className="w-3 h-3" /> : activeTab === 'g' ? <Layers className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
+                {t("追加先", "Adding to")}:{" "}
+                <span className="font-black">{activeTab === 'main' ? t("メインデッキ", "Main Deck") : activeTab === 'g' ? 'G-Zone' : 'Hyperspatial'}</span>
+              </div>
+            )}
+
+            <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
+              <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
+                <AnimatePresence mode="popLayout">
+                  {availableCards.map(c => (
+                    <motion.div 
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      key={c.id} 
+                      className="group relative h-full flex flex-col"
+                    >
+                      <div 
+                          onClick={() => { setSelectedCard(c); addCard(c, effectiveZone); }}
+                          onMouseEnter={() => setSelectedCard(c)}
+                          className="relative group cursor-pointer transition-all hover:scale-125 hover:z-[100] z-10 aspect-[3/4]"
+                      >
+                          <Card card={c} isStatic />
+                          <div className={`absolute inset-0 border rounded-sm pointer-events-none transition-colors ${selectedCard?.id === c.id ? 'border-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'border-transparent group-hover:border-blue-500/50'}`} />
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
         </section>
       </main>

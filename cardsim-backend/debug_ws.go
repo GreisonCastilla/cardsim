@@ -1,4 +1,11 @@
+//go:build ignore
+// +build ignore
+
+// debug_ws.go — a standalone test client, run with: go run debug_ws.go
+// Not part of the main build.
+
 package main
+
 
 import (
 	"encoding/json"

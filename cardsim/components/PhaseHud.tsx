@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SkipForward } from 'lucide-react';
+import { SkipForward, Lock } from 'lucide-react';
 import { cn } from "../lib/utils";
 import { PlayerId, PhaseName, PHASES } from "../store/gameStore";
 
@@ -9,9 +9,10 @@ interface PhaseHudProps {
   currentPhase: PhaseName;
   currentPlayer: PlayerId;
   nextPhase: () => void;
+  isMyTurn?: boolean; // When false, disables the Next Step button
 }
 
-export function PhaseHud({ currentPhase, currentPlayer, nextPhase }: PhaseHudProps) {
+export function PhaseHud({ currentPhase, currentPlayer, nextPhase, isMyTurn = true }: PhaseHudProps) {
   return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] pointer-events-none w-full flex justify-center">
       <div className="flex items-center bg-[#0f172a]/80 backdrop-blur-[12px] border border-white/10 p-0.5 px-3 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.5),0_0_10px_rgba(255,255,255,0.05)] pointer-events-auto h-8 transition-all scale-95 origin-center">
@@ -30,12 +31,24 @@ export function PhaseHud({ currentPhase, currentPlayer, nextPhase }: PhaseHudPro
           ))}
         </div>
         <button
-          onClick={nextPhase}
-          className="ml-3 pl-4 pr-2 h-5 border-l border-white/10 flex items-center gap-2 text-[8px] font-black text-blue-400/70 hover:text-blue-400 uppercase tracking-[0.2em] group transition-all"
+          onClick={isMyTurn ? nextPhase : undefined}
+          disabled={!isMyTurn}
+          title={isMyTurn ? "Avanzar fase (N)" : "Esperando tu turno..."}
+          className={cn(
+            "ml-3 pl-4 pr-2 h-5 border-l border-white/10 flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.2em] group transition-all",
+            isMyTurn
+              ? "text-blue-400/70 hover:text-blue-400 cursor-pointer"
+              : "text-slate-600 cursor-not-allowed opacity-40"
+          )}
         >
-          <span className="drop-shadow-[0_0_5px_rgba(96,165,250,0.5)]">Next Step</span>
-          <div className="bg-blue-500/10 p-0.5 rounded-md group-hover:bg-blue-500/20 transition-all">
-            <SkipForward size={10} className="text-blue-400" />
+          <span className={cn(isMyTurn && "drop-shadow-[0_0_5px_rgba(96,165,250,0.5)]")}>
+            {isMyTurn ? "Next Step" : "Waiting..."}
+          </span>
+          <div className={cn("p-0.5 rounded-md transition-all", isMyTurn ? "bg-blue-500/10 group-hover:bg-blue-500/20" : "bg-slate-800/50")}>
+            {isMyTurn
+              ? <SkipForward size={10} className="text-blue-400" />
+              : <Lock size={10} className="text-slate-600" />
+            }
           </div>
         </button>
       </div>
