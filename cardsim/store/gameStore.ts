@@ -25,6 +25,19 @@ export interface GameCard {
     boardX?: number | null;
     boardY?: number | null;
     linkedCardIds?: string[];
+    civilization?: string;
+    raceEn?: string;
+    raceJa?: string;
+    typeEn?: string;
+    typeJa?: string;
+    primary_set?: string;
+    rarity?: string;
+    illustrator?: string;
+    mana?: string;
+    hyperpower?: string;
+    source_url?: string;
+    sets?: string[];
+    backs?: any[];
 }
 
 // Flat structure helps DndKit.

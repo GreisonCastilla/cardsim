@@ -23,7 +23,7 @@ import { useGameDnD } from "../lib/useGameDnD";
 export function GameBoard({ onExit }: { onExit: () => void }) {
   const {
     cards, zones, initializeGame, moveCard, drawCards, shuffleDeck,
-    toggleTapped, toggleFace, currentPhase, currentPlayer, nextPhase,
+    toggleTapped, toggleFace, currentPhase, currentPlayer, myRole, nextPhase,
     topToMana, topToShield, topToGraveyard, untapAll, linkCard, unlinkCard,
   } = useGameStore();
 
@@ -82,7 +82,8 @@ export function GameBoard({ onExit }: { onExit: () => void }) {
   });
 
   const { handleDragStart, handleDragEnd, handleDragCancel, isDragging } = useGameDnD({
-    zones, moveCard, linkCard, showNotification, setActiveCard, setPreviewCard, previewTimerRef: previewTimer
+    zones, moveCard, linkCard, showNotification, setActiveCard, setPreviewCard, previewTimerRef: previewTimer,
+    isMyTurn: currentPlayer === myRole, myRole
   });
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));

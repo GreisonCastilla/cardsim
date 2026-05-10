@@ -1,0 +1,832 @@
+{
+  "Bolshack Dragon, the Temporal Blaze": {
+    "name": "Bolshack Dragon, the Temporal Blaze",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/34/Dmd18-11a.jpg/revision/latest?cb=20200129231841",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/94/Dmd18-11b.jpg/revision/latest?cb=20200217153128"
+  },
+  "April, Temporal Gunprincess": {
+    "name": "April, Temporal Gunprincess",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d0/Dmx3-17a.jpg/revision/latest?cb=20200129174451",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b9/Dmx3-17b.jpg/revision/latest?cb=20200809040847"
+  },
+  "Chakra, Temporal Thunder Dragon": {
+    "name": "Chakra, Temporal Thunder Dragon",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/29/Dmx8-s1a.jpg/revision/latest?cb=20200129175924",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ee/Dmx8-s1b.jpg/revision/latest?cb=20200218114942"
+  },
+  "Luna Allegre, Temporal Tower": {
+    "name": "Luna Allegre, Temporal Tower",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3c/Dm36-s3a.jpg/revision/latest?cb=20200130220359",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1b/Dm36-s3b.jpg/revision/latest?cb=20120213075228"
+  },
+  "Rumble, Temporal Sage": {
+    "name": "Rumble, Temporal Sage",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/84/Dm36-s5a.jpg/revision/latest?cb=20200130220409",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b1/Dm36-s5b.jpg/revision/latest?cb=20111003132714"
+  },
+  "Bolmeteus \"Young Musha\" Dragon, Temporal Samurai": {
+    "name": "Bolmeteus \"Young Musha\" Dragon, Temporal Samurai",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ec/Dmx2-1a.jpg/revision/latest?cb=20200129174209",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/51/Dmx2-1b.jpg/revision/latest?cb=20170103054830"
+  },
+  "Japan, Temporal Enforcer": {
+    "name": "Japan, Temporal Enforcer",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f4/Dm36-s9a.jpg/revision/latest?cb=20200130220434",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0a/Dm36-s9b.jpg/revision/latest?cb=20111003132716"
+  },
+  "Master Lupia, Temporal Wing": {
+    "name": "Master Lupia, Temporal Wing",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ef/Dmc62-1a.jpg/revision/latest?cb=20200319204832",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/7/70/Dmc62-1b.jpg/revision/latest?cb=20260205083942"
+  },
+  "Suva, Temporal Menace": {
+    "name": "Suva, Temporal Menace",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6c/Dmc63-1a.jpg/revision/latest?cb=20200130144514",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/08/Dmc63-1b.jpg/revision/latest?cb=20260205083721"
+  },
+  "Caiman, Temporal Flower": {
+    "name": "Caiman, Temporal Flower",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2a/Dmd20-19a.jpg/revision/latest?cb=20200129231631",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/23/Dmd20-19b.jpg/revision/latest?cb=20141121073523"
+  },
+  "File:Dm30-29.jpg": {
+    "name": "File:Dm30-29.jpg",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/91/Dm36-41a.jpg/revision/latest?cb=20200130215742",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f3/Dm36-41b.jpg/revision/latest?cb=20120107102656"
+  },
+  "Aqua Cutlass, Temporal Swordsman": {
+    "name": "Aqua Cutlass, Temporal Swordsman",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2b/Dmx3-15a.jpg/revision/latest?cb=20200129174442",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/7/7e/Dmx3-15b.jpg/revision/latest?cb=20200809040840"
+  },
+  "O'Flame, Temporal Djinn": {
+    "name": "O'Flame, Temporal Djinn",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8b/Dm36-59a.jpg/revision/latest?cb=20200130215848",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/eb/Dm36-59b.jpg/revision/latest?cb=20120107102750"
+  },
+  "Kill, Temporal Brawler": {
+    "name": "Kill, Temporal Brawler",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b7/Dm22ex1-89a.jpg/revision/latest?cb=20221028120009",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6a/Dm22ex1-89b.jpg/revision/latest?cb=20221028120009"
+  },
+  "Dravita, Temporal Pressure Elemental": {
+    "name": "Dravita, Temporal Pressure Elemental",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e5/Dm25ex4-tr6a.jpg/revision/latest?cb=20260207101529",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/00/Dm25ex4-tr6b.jpg/revision/latest?cb=20260207101533"
+  },
+  "Untouchable, Temporal Hero": {
+    "name": "Untouchable, Temporal Hero",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/39/Dmex17-76a.jpg/revision/latest?cb=20211022120442",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ec/Dmex17-76b.jpg/revision/latest?cb=20211022120755"
+  },
+  "Storm Double Cross, Temporal Storm": {
+    "name": "Storm Double Cross, Temporal Storm",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/63/Dmc65-1a.jpg/revision/latest?cb=20200130144112",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/40/Dmc65-1b.jpg/revision/latest?cb=20111030144359"
+  },
+  "Dias Zeta, the Temporal Suppressor": {
+    "name": "Dias Zeta, the Temporal Suppressor",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/4/4e/Dmex17-%E8%B6%8517a.jpg/revision/latest?cb=20211015235835",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8a/Dmex17-%E8%B6%8517b.jpg/revision/latest?cb=20211015235835"
+  },
+  "Jon, Temporal Explorer": {
+    "name": "Jon, Temporal Explorer",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/da/Dmx3-23a.jpg/revision/latest?cb=20200129174503",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/1/10/Dmx3-23b.jpg/revision/latest?cb=20200809040857"
+  },
+  "Martini, Temporal Dancer": {
+    "name": "Martini, Temporal Dancer",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/7/7d/Dm37-24a.jpg/revision/latest?cb=20200130214133",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d1/Dm37-24b.jpg/revision/latest?cb=20111003125144"
+  },
+  "Romanov Zeta, Temporal Demonic Eye": {
+    "name": "Romanov Zeta, Temporal Demonic Eye",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/18/Dm38-s2a.jpg/revision/latest?cb=20200130212037",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/c6/Dm38-s2b.jpg/revision/latest?cb=20111003124305"
+  },
+  "Storm Kaiser Double Cross, Temporal Kamikaze": {
+    "name": "Storm Kaiser Double Cross, Temporal Kamikaze",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1c/Dm38-s3a.jpg/revision/latest?cb=20200130212044",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b0/Dm38-s3b.jpg/revision/latest?cb=20120102141107"
+  },
+  "Cheval, Temporal Demonic Elemental": {
+    "name": "Cheval, Temporal Demonic Elemental",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e2/Dmbd21-11a.jpg/revision/latest?cb=20220802113240",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/29/Dmbd21-11b.jpg/revision/latest?cb=20220802113240"
+  },
+  "Koshirou, Temporal Ogre": {
+    "name": "Koshirou, Temporal Ogre",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f7/Dm38-30a.jpg/revision/latest?cb=20200130211938",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d5/Dm38-30b.jpg/revision/latest?cb=20120102140755"
+  },
+  "Galaxy, Temporal Immortal": {
+    "name": "Galaxy, Temporal Immortal",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/0/06/Dmc68-1a.jpg/revision/latest?cb=20200130143644",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/c4/Dmc68-1b.jpg/revision/latest?cb=20120113065215"
+  },
+  "Diabolos Zeta, Temporal Ruler": {
+    "name": "Diabolos Zeta, Temporal Ruler",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/ad/Dm25ex4-tr15a.jpg/revision/latest?cb=20260207101658",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/4a/Dm25ex4-tr15b.jpg/revision/latest?cb=20260207101704"
+  },
+  "Storm Genji Double Cross, the Super Temporal": {
+    "name": "Storm Genji Double Cross, the Super Temporal",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/ff/Dm25ex4-tr9a.jpg/revision/latest?cb=20260207101556",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/07/Dm25ex4-tr9b.jpg/revision/latest?cb=20260207101600"
+  },
+  "G Hogan, Temporal Star": {
+    "name": "G Hogan, Temporal Star",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ee/Dm39-8a.jpg/revision/latest?cb=20200130210256",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/90/Dm39-8b.jpg/revision/latest?cb=20111003123456"
+  },
+  "Five Star, Temporal Luck": {
+    "name": "Five Star, Temporal Luck",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/c/ce/Dm39-1a.jpg/revision/latest?cb=20200130210211",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/52/Dm39-1b.jpg/revision/latest?cb=20111003123454"
+  },
+  "GENJI Double Cross, Temporal Swordsman": {
+    "name": "GENJI Double Cross, Temporal Swordsman",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/90/Dm39-4a.jpg/revision/latest?cb=20200130210230",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/24/Dm39-4b.jpg/revision/latest?cb=20111003123456"
+  },
+  "Kankuro, Temporal Actor": {
+    "name": "Kankuro, Temporal Actor",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/4/48/Dm39-17a.jpg/revision/latest?cb=20200130210304",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b0/Dm39-17b.jpg/revision/latest?cb=20111003123515"
+  },
+  "Black Ganveet, Temporal Wicked Soldier": {
+    "name": "Black Ganveet, Temporal Wicked Soldier",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/4/48/Dmd19-15a.jpg/revision/latest?cb=20200129231723",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d4/Dmd19-15b.jpg/revision/latest?cb=20230715122144"
+  },
+  "Zero Kaiser": {
+    "name": "Zero Kaiser",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/18/Dm25ex4-t5a.jpg/revision/latest?cb=20260207093729",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/9a/Dm25ex4-t5b.jpg/revision/latest?cb=20260207104401"
+  },
+  "Zabi Porrima, Marshmallow Doll": {
+    "name": "Zabi Porrima, Marshmallow Doll",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/b/be/Dmr1-54a.jpg/revision/latest?cb=20200129141543",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/95/Dmr1-54b.jpg/revision/latest?cb=20260205132842"
+  },
+  "Gil Porrima's Pliers": {
+    "name": "Gil Porrima's Pliers",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d5/Dmr1-61a.jpg/revision/latest?cb=20200129141554",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/41/Dmr1-61b.jpg/revision/latest?cb=20260205132849"
+  },
+  "Gaga Packun, Io Enforcer": {
+    "name": "Gaga Packun, Io Enforcer",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/35/Dmex8-43a.jpg/revision/latest?cb=20200210134731",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/cc/Dmex8-43b.jpg/revision/latest?cb=20200809073109"
+  },
+  "Geo the Man, Earth Titan": {
+    "name": "Geo the Man, Earth Titan",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3c/Dmex8-44a.jpg/revision/latest?cb=20200210134737",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/4b/Dmex8-44b.jpg/revision/latest?cb=20200809073116"
+  },
+  "Gaial Kaiser": {
+    "name": "Gaial Kaiser",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/7/70/Dmex8-33a.jpg/revision/latest?cb=20200210134703",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2e/Dmex8-33b.jpg/revision/latest?cb=20200129083235"
+  },
+  "Boost, Crimson Lord": {
+    "name": "Boost, Crimson Lord",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/27/Dmx25-39a.jpg/revision/latest?cb=20200129194444",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0f/Dmx25-39b.jpg/revision/latest?cb=20200217155443"
+  },
+  "Dragonic Pippi": {
+    "name": "Dragonic Pippi",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0c/Dmx25-40a.jpg/revision/latest?cb=20200129194450",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/51/Dmx25-40b.jpg/revision/latest?cb=20200217155448"
+  },
+  "Gallows Cebu Kaiser": {
+    "name": "Gallows Cebu Kaiser",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d3/Dmr1-v1a.jpg/revision/latest?cb=20200129141856",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3d/Dmr1-v1b.jpg/revision/latest?cb=20200809074511"
+  },
+  "Hydra Gilsaurus": {
+    "name": "Hydra Gilsaurus",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/99/Dmr1-59a.jpg/revision/latest?cb=20200129141608",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6e/Dmr1-59b.jpg/revision/latest?cb=20200809074523"
+  },
+  "Zabi Rigel, Dragon Bone Keel": {
+    "name": "Zabi Rigel, Dragon Bone Keel",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/7/77/Dmr1-53a.jpg/revision/latest?cb=20200129141537",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/66/Dmr1-53b.jpg/revision/latest?cb=20200809074533"
+  },
+  "Gil Fuji, Yokozuna": {
+    "name": "Gil Fuji, Yokozuna",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/12/Dmr2-2a.jpg/revision/latest?cb=20200129140437",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e3/Dmr2-2b.jpg/revision/latest?cb=20200809075152"
+  },
+  "Geo Ohzeki Hamlet": {
+    "name": "Geo Ohzeki Hamlet",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2d/Dmr2-28a.jpg/revision/latest?cb=20200129140548",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/dc/Dmr2-28b.jpg/revision/latest?cb=20111010064425"
+  },
+  "Zabi Komusubi Flower": {
+    "name": "Zabi Komusubi Flower",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/df/Dmr2-25a.jpg/revision/latest?cb=20200129140531",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3d/Dmr2-25b.jpg/revision/latest?cb=20200809075156"
+  },
+  "White TENMTH Kaiser": {
+    "name": "White TENMTH Kaiser",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0c/Dmx5-1a.jpg/revision/latest?cb=20200129174749",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e0/Dmx5-1b.jpg/revision/latest?cb=20200218114829"
+  },
+  "Black WILLOW Kaiser": {
+    "name": "Black WILLOW Kaiser",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/15/Dmx5-2a.jpg/revision/latest?cb=20200129174750",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/02/Dmx5-2b.jpg/revision/latest?cb=20200218114833"
+  },
+  "Saint Ave Maria, Channeler of Suns": {
+    "name": "Saint Ave Maria, Channeler of Suns",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/0/07/Dmx4-v1a.jpg/revision/latest?cb=20200129174746",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/7/78/Dmx4-v1b.jpg/revision/latest?cb=20250416032544"
+  },
+  "Chandelier, Channeler of Suns": {
+    "name": "Chandelier, Channeler of Suns",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/51/Dmx4-4a.jpg/revision/latest?cb=20200129174643",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/66/Dmx4-4b.jpg/revision/latest?cb=20250416032631"
+  },
+  "Merrianne, Vizier of Alps": {
+    "name": "Merrianne, Vizier of Alps",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/c/c1/Dmx4-9a.jpg/revision/latest?cb=20200129174704",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/07/Dmx4-9b.jpg/revision/latest?cb=20250416032636"
+  },
+  "Immortal Boost, Crimson Lord": {
+    "name": "Immortal Boost, Crimson Lord",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d8/Dmx22b-121a.jpg/revision/latest?cb=20200129193437",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/01/Dmx22b-121b.jpg/revision/latest?cb=20200809043111"
+  },
+  "Proto Gaial": {
+    "name": "Proto Gaial",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3a/Dm-p32a-y10.jpg/revision/latest?cb=20250409110134",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3a/Dm-p32a-y10.jpg/revision/latest?cb=20250409110134"
+  },
+  "Silver Volg": {
+    "name": "Silver Volg",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/db/Dm-p37a-y10.jpg/revision/latest?cb=20250409110211",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/db/Dm-p37a-y10.jpg/revision/latest?cb=20250409110211"
+  },
+  "Deis Rigel, Persistent Flame": {
+    "name": "Deis Rigel, Persistent Flame",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e3/Dmd4-1a.jpg/revision/latest?cb=20200129233038",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/bb/Dmd4-1b.jpg/revision/latest?cb=20250416030024"
+  },
+  "Game On! Kirifuda Family!": {
+    "name": "Game On! Kirifuda Family!",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e7/Dmx25-26a.jpg/revision/latest?cb=20200129194356",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0a/Dmx25-26b.jpg/revision/latest?cb=20250330044607"
+  },
+  "Forever Kaiser, the Meteor": {
+    "name": "Forever Kaiser, the Meteor",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3c/Dm25ex4-tr1a.jpg/revision/latest?cb=20260207101058",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/c1/Dm25ex4-tr1b.jpg/revision/latest?cb=20260207105210"
+  },
+  "Sakon Pippi": {
+    "name": "Sakon Pippi",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2d/Dm25ex4-t25a.jpg/revision/latest?cb=20260207093950",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f1/Dm25ex4-t25b.jpg/revision/latest?cb=20260207105150"
+  },
+  "Mother Alien (Gladly)": {
+    "name": "Mother Alien (Gladly)",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3f/Dmx7-6a.jpg/revision/latest?cb=20200129175533",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/fb/Dmx7-6b.jpg/revision/latest?cb=20200218114915"
+  },
+  "Alien Father (Just 1 Song?)": {
+    "name": "Alien Father (Just 1 Song?)",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/c/c5/Dmx7-8a.jpg/revision/latest?cb=20200129175545",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/23/Dmx7-8b.jpg/revision/latest?cb=20200218114921"
+  },
+  "Aqua Attack (BAGOOON Panzer)": {
+    "name": "Aqua Attack (BAGOOON Panzer)",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/ac/Dmex8-6a.jpg/revision/latest?cb=20200210134306",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/99/Dmex8-6b.jpg/revision/latest?cb=20200129065132"
+  },
+  "Aqua Jet (BOOON Sky)": {
+    "name": "Aqua Jet (BOOON Sky)",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/9e/Dmex8-8a.jpg/revision/latest?cb=20200210134317",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/4a/Dmex8-8b.jpg/revision/latest?cb=20200129070502"
+  },
+  "Aqua Cascade (ZABUUUN Cruiser)": {
+    "name": "Aqua Cascade (ZABUUUN Cruiser)",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/4/4c/Dmex8-7a.jpg/revision/latest?cb=20200210134311",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/4c/Dmex8-7b.jpg/revision/latest?cb=20200129065843"
+  },
+  "Kiryuin Jin, Crimson Rage": {
+    "name": "Kiryuin Jin, Crimson Rage",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/b/bf/Dmx6-v1a.jpg/revision/latest?cb=20200129175252",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/00/Dmx6-v1b.jpg/revision/latest?cb=20200218114909"
+  },
+  "Quattro Fang, Soul Gang Leader": {
+    "name": "Quattro Fang, Soul Gang Leader",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/15/Dmx25-32a.jpg/revision/latest?cb=20200129194405",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/bb/Dmx25-32b.jpg/revision/latest?cb=20200217155435"
+  },
+  "Chain Arm Tribe": {
+    "name": "Chain Arm Tribe",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f3/Dmx6-11a.jpg/revision/latest?cb=20200129175218",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/ca/Dmx6-11b.jpg/revision/latest?cb=20200218114904"
+  },
+  "Ryusei Kaiser, the Victorious": {
+    "name": "Ryusei Kaiser, the Victorious",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ef/Dm25ex4-tr2a.jpg/revision/latest?cb=20260207101136",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/7/76/Dm25ex4-tr2b.jpg/revision/latest?cb=20260207105442"
+  },
+  "Prin Prin, the Victorious": {
+    "name": "Prin Prin, the Victorious",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/dd/Dm25ex4-t29a.jpg/revision/latest?cb=20260207094029",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/dd/Dm25ex4-t29b.jpg/revision/latest?cb=20260207105434"
+  },
+  "Intense Boiling! Onsen Gallows": {
+    "name": "Intense Boiling! Onsen Gallows",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/29/Dm22ex1-1a.jpg/revision/latest?cb=20221028120258",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/30/Dm22ex1-1b.jpg/revision/latest?cb=20221028120302"
+  },
+  "Intense Sumo! Thrust Wrestler": {
+    "name": "Intense Sumo! Thrust Wrestler",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/83/Dmx25-23a.jpg/revision/latest?cb=20200129194338",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/fc/Dmx25-23b.jpg/revision/latest?cb=20200217155430"
+  },
+  "Intense World! Shachihoko Kaiser": {
+    "name": "Intense World! Shachihoko Kaiser",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dmx25-22a.jpg/revision/latest?cb=20200129194331",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/64/Dmx25-22b.jpg/revision/latest?cb=20200217155424"
+  },
+  "Diabolos Double Zeta, Temporal Demon Dragon": {
+    "name": "Diabolos Double Zeta, Temporal Demon Dragon",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/ad/Dmd19-1a.jpg/revision/latest?cb=20200129231640",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e4/Dmd19-1b.jpg/revision/latest?cb=20200217153225"
+  },
+  "Perfect, Immortal Lance": {
+    "name": "Perfect, Immortal Lance",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/87/Dmr13-v1a.jpg/revision/latest?cb=20200127223158",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/fb/Dmr13-v1b.jpg/revision/latest?cb=20200217175244"
+  },
+  "Diabolos, Prison Dragon Blade": {
+    "name": "Diabolos, Prison Dragon Blade",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/c/cb/Dmrp21-tr1a.jpg/revision/latest?cb=20220422112340",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6c/Dmrp21-tr1b.jpg/revision/latest?cb=20220422112343"
+  },
+  "Gaiheart, Galaxy Greatsword": {
+    "name": "Gaiheart, Galaxy Greatsword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e5/Dm25bd3-3a.jpg/revision/latest?cb=20251118130815",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/21/Dm25bd3-3b.jpg/revision/latest?cb=20251118130823"
+  },
+  "Evidence, Truth Gun": {
+    "name": "Evidence, Truth Gun",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b4/Dm25ex4-sp2a.jpg/revision/latest?cb=20260203134436",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2d/Dm25ex4-sp2b.jpg/revision/latest?cb=20260203134439"
+  },
+  "Go To Hell, Annihilator Blade": {
+    "name": "Go To Hell, Annihilator Blade",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/c/cc/Dm25ex4-sp3a.jpg/revision/latest?cb=20260203134443",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/cb/Dm25ex4-sp3b.jpg/revision/latest?cb=20260203134447"
+  },
+  "Judaina, Jurassic Hammer": {
+    "name": "Judaina, Jurassic Hammer",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3b/Dmr13-v4a.jpg/revision/latest?cb=20200127223222",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/7/76/Dmr13-v4b.jpg/revision/latest?cb=20200217175308"
+  },
+  "Togetops, Tricera Impact": {
+    "name": "Togetops, Tricera Impact",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/fa/Dmr13-69a.jpg/revision/latest?cb=20200127222855",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/28/Dm-p75b-y13.jpg/revision/latest?cb=20250331064638"
+  },
+  "Urovelia, Divine Dragon Spear": {
+    "name": "Urovelia, Divine Dragon Spear",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6d/Dm-p57a-y13.jpg/revision/latest?cb=20250331063708",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2d/Dm-p57b-y13.jpg/revision/latest?cb=20250331063712"
+  },
+  "Discald, Misfortune Demon Sickle": {
+    "name": "Discald, Misfortune Demon Sickle",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2e/Dmd19-22a.jpg/revision/latest?cb=20200129231713",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/a/ac/Dmd19-22b.jpg/revision/latest?cb=20200217153200"
+  },
+  "Greasy Horn, Passion Sword": {
+    "name": "Greasy Horn, Passion Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/5e/Dm22bd1-8a.jpg/revision/latest?cb=20221110073502",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/fe/Dm22bd1-8b.jpg/revision/latest?cb=20221110073509"
+  },
+  "Multiply, Double Dragon Gun": {
+    "name": "Multiply, Double Dragon Gun",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/35/Dm25ex2-73a.jpg/revision/latest?cb=20251010154445",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/8/88/Dm25ex2-73b.jpg/revision/latest?cb=20251010154450"
+  },
+  "Protoheart, Galaxy Sword": {
+    "name": "Protoheart, Galaxy Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/7/7c/Dmx26-33a.jpg/revision/latest?cb=20200129194956",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d4/Dmx26-33b.jpg/revision/latest?cb=20200217155735"
+  },
+  "Gaiginga Soul, Star Dragsolution": {
+    "name": "Gaiginga Soul, Star Dragsolution",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d4/Dmx26-33b.jpg/revision/latest?cb=20200217155735",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/7/7c/Dmx26-33a.jpg/revision/latest?cb=20200129194956"
+  },
+  "Gaial, Leader Dragon Sword": {
+    "name": "Gaial, Leader Dragon Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/16/Dm25bd3-5a.jpg/revision/latest?cb=20251118130840",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/de/Dm25bd3-5b.jpg/revision/latest?cb=20251118130844"
+  },
+  "Joan Mizell, Revolution Spear": {
+    "name": "Joan Mizell, Revolution Spear",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/94/Dm25ex2-69a.jpg/revision/latest?cb=20251010154430",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/8/82/Dm25ex2-69b.jpg/revision/latest?cb=20251010154433"
+  },
+  "D'Arc-en-Ciel, Holy Spear Dragon Elemental": {
+    "name": "D'Arc-en-Ciel, Holy Spear Dragon Elemental",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/82/Dm25ex2-69b.jpg/revision/latest?cb=20251010154433",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/94/Dm25ex2-69a.jpg/revision/latest?cb=20251010154430"
+  },
+  "Evidegoras, Dragon Sonic Aircraft Carrier": {
+    "name": "Evidegoras, Dragon Sonic Aircraft Carrier",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/af/Dmx26-v4a.jpg/revision/latest?cb=20200129195214",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/5e/Dmx26-v4b.jpg/revision/latest?cb=20200217155747"
+  },
+  "Tenshukaku, Dragon King Keep ~Fighting Spirit Mode~": {
+    "name": "Tenshukaku, Dragon King Keep ~Fighting Spirit Mode~",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/21/Dmr14-4a.jpg/revision/latest?cb=20210409045922",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e8/Dmr14-4b.jpg/revision/latest?cb=20200217175239"
+  },
+  "File:Dmr14-7.jpg": {
+    "name": "File:Dmr14-7.jpg",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/ad/Dmr14-8a.jpg/revision/latest?cb=20210409045926",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/53/Dmr14-8b.jpg/revision/latest?cb=20200217175245"
+  },
+  "Demon Wolf, Soul Eating Moonlight Castle": {
+    "name": "Demon Wolf, Soul Eating Moonlight Castle",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d3/Dmr14-14a.jpg/revision/latest?cb=20210409045929",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/c3/Dmr14-14b.jpg/revision/latest?cb=20200217175252"
+  },
+  "Hellfuezu, Purgatory Blade": {
+    "name": "Hellfuezu, Purgatory Blade",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/0/07/Dmbd14-3a.jpg/revision/latest?cb=20200821083437",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/de/Dmbd14-3b.jpg/revision/latest?cb=20200821083444"
+  },
+  "Hell Crime, Purgatory Palace": {
+    "name": "Hell Crime, Purgatory Palace",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/de/Dmbd14-3b.jpg/revision/latest?cb=20200821083444",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0d/Dmbd14-3c.jpg/revision/latest?cb=20200821083445"
+  },
+  "Boaroaxe, Evil Tomahawk": {
+    "name": "Boaroaxe, Evil Tomahawk",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1f/Dmx22b-61a.jpg/revision/latest?cb=20200129193145",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/98/Dmx18-16b.jpg/revision/latest?cb=20260212112313"
+  },
+  "Boaropagos, Evil Emperor Ruins": {
+    "name": "Boaropagos, Evil Emperor Ruins",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/98/Dmx18-16b.jpg/revision/latest?cb=20260212112313",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ec/Dmx22b-61b%2B62b%2B63b.jpg/revision/latest?cb=20160217092132"
+  },
+  "Migawari, Nightmare Manji": {
+    "name": "Migawari, Nightmare Manji",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/88/Dmx18-36a.jpg/revision/latest?cb=20141018055440",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/69/Dmx18-36b.jpg/revision/latest?cb=20141018055506"
+  },
+  "Karakurigaeshi, Ninja Mansion": {
+    "name": "Karakurigaeshi, Ninja Mansion",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/69/Dmx18-36b.jpg/revision/latest?cb=20141018055506",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/cd/Dmx18-36c.jpg/revision/latest?cb=20141018055750"
+  },
+  "Javeleon, Beast Lance": {
+    "name": "Javeleon, Beast Lance",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/dc/Dmbd14-2a.jpg/revision/latest?cb=20200821083435",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/69/Dmbd14-2b.jpg/revision/latest?cb=20200821083436"
+  },
+  "Leosaiyu, Beast Cathedral": {
+    "name": "Leosaiyu, Beast Cathedral",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/69/Dmbd14-2b.jpg/revision/latest?cb=20200821083436",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/53/Dmbd14-2c.jpg/revision/latest?cb=20200821083437"
+  },
+  "Ravuerite, Sun Spear": {
+    "name": "Ravuerite, Sun Spear",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1a/Dmx18-21a.jpg/revision/latest?cb=20141018055438",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0b/Dmx18-21b.jpg/revision/latest?cb=20141018055505"
+  },
+  "Blanc Noir, White Nights Church": {
+    "name": "Blanc Noir, White Nights Church",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0b/Dmx18-21b.jpg/revision/latest?cb=20141018055505",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1d/Dmx18-21c.jpg/revision/latest?cb=20250329134312"
+  },
+  "Dragment Launcher, Three-Dimensional Weapon": {
+    "name": "Dragment Launcher, Three-Dimensional Weapon",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/57/Dmx18-31a.jpg/revision/latest?cb=20141018055439",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b1/Dmx18-31b.jpg/revision/latest?cb=20141018055506"
+  },
+  "Eucleidesu, Dragment Fighter": {
+    "name": "Eucleidesu, Dragment Fighter",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b1/Dmx18-31b.jpg/revision/latest?cb=20141018055506",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8e/Dmx18-31c.jpg/revision/latest?cb=20141018055750"
+  },
+  "Le=Piraju, Birth Mystery": {
+    "name": "Le=Piraju, Birth Mystery",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/19/Dmx18-46b.jpg/revision/latest?cb=20141018055508",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/43/Dmx18-46c.jpg/revision/latest?cb=20141018055751"
+  },
+  "Meriken Bulk, Blooded Nail": {
+    "name": "Meriken Bulk, Blooded Nail",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/a8/Dmx18-41a.jpg/revision/latest?cb=20141018055440",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dmx18-41b.jpg/revision/latest?cb=20141018055508"
+  },
+  "Bulk Arena, Passionate Duel Castle": {
+    "name": "Bulk Arena, Passionate Duel Castle",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dmx18-41b.jpg/revision/latest?cb=20141018055508",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/40/Dmx18-41c.jpg/revision/latest?cb=20141018055750"
+  },
+  "Batorai Edge, Blazing Sword": {
+    "name": "Batorai Edge, Blazing Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/87/Dm-p117a-y24.jpg/revision/latest?cb=20260217120945",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/50/Dm-p117b-y24.jpg/revision/latest?cb=20260217120940"
+  },
+  "Batorai Keep, Blazing Castle": {
+    "name": "Batorai Keep, Blazing Castle",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/50/Dm-p117b-y24.jpg/revision/latest?cb=20260217120940",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/51/Dm-p117c-y24.jpg/revision/latest?cb=20260217120934"
+  },
+  "Fanpai, Dragon Flower Fan": {
+    "name": "Fanpai, Dragon Flower Fan",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/4/48/Dmx18-26a.jpg/revision/latest?cb=20141018055439",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/1/19/Dmx18-26b.jpg/revision/latest?cb=20141018055506"
+  },
+  "Tonnanshape, Dragon Pulse Sky Ship": {
+    "name": "Tonnanshape, Dragon Pulse Sky Ship",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/19/Dmx18-26b.jpg/revision/latest?cb=20141018055506",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/eb/Dmx18-26c.jpg/revision/latest?cb=20141018055749"
+  },
+  "Great Galaxy, Giant Star Castle": {
+    "name": "Great Galaxy, Giant Star Castle",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/27/Dm-p67a-y13.jpg/revision/latest?cb=20250331063926",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/7/70/Dm-p67b-y13.jpg/revision/latest?cb=20250331063801"
+  },
+  "Gaiohburn, Head General Sword": {
+    "name": "Gaiohburn, Head General Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/c/c2/Dm25ex2-1a.jpg/revision/latest?cb=20251010153944",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f7/Dm25ex2-1b.jpg/revision/latest?cb=20251010153948"
+  },
+  "Forefront Double Cross Shogunate": {
+    "name": "Forefront Double Cross Shogunate",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/55/Dm25ex2-%E8%B6%8545a.jpg/revision/latest?cb=20251010143731",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/20/Dm25ex2-%E8%B6%8545b.jpg/revision/latest?cb=20251010143740"
+  },
+  "File:Gyou.jpg": {
+    "name": "File:Gyou.jpg",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/38/Dmx22b-146a.jpg/revision/latest?cb=20200129193548",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/fc/Dmx22b-146b.jpg/revision/latest?cb=20160205144059"
+  },
+  "Gigaheart, Invincible King Sword": {
+    "name": "Gigaheart, Invincible King Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6a/Dm25bd3-2a.jpg/revision/latest?cb=20251118130804",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/63/Dm25bd3-2b.jpg/revision/latest?cb=20251118130808"
+  },
+  "Heaven's Heaven, Heavenly Justice": {
+    "name": "Heaven's Heaven, Heavenly Justice",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/26/Dm25ex4-sp1a.jpg/revision/latest?cb=20260203134610",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/a/ac/Dm25ex4-sp1b.jpg/revision/latest?cb=20260203134432"
+  },
+  "Gaial Horn, Iron-slashing Sword": {
+    "name": "Gaial Horn, Iron-slashing Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dmex17-64a.jpg/revision/latest?cb=20211022115524",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6e/Dmex17-64b.jpg/revision/latest?cb=20211022115524"
+  },
+  "Welcome Hell, Supreme Devil King Palace": {
+    "name": "Welcome Hell, Supreme Devil King Palace",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8f/Dm23rp1-tr1a.jpg/revision/latest?cb=20230421012241",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/5/5f/Dm23rp1-tr1b.jpg/revision/latest?cb=20230421012136"
+  },
+  "Endless Heaven, True Holy Church": {
+    "name": "Endless Heaven, True Holy Church",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/4/45/Dmx26-v3a.jpg/revision/latest?cb=20200129195208",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/25/Dmx26-v3b.jpg/revision/latest?cb=20200217131635"
+  },
+  "Heart Burn, Battle General Galaxy Fortress": {
+    "name": "Heart Burn, Battle General Galaxy Fortress",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2f/Dm25bd3-1a.jpg/revision/latest?cb=20251118130754",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/c/cd/Dm25bd3-1b.jpg/revision/latest?cb=20251118130759"
+  },
+  "Proto Gigaheart, Invincible Sword": {
+    "name": "Proto Gigaheart, Invincible Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f7/Dm25bd3-7a.jpg/revision/latest?cb=20251118130904",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/db/Dm25bd3-7b.jpg/revision/latest?cb=20251118130910"
+  },
+  "Evidestein, Ultra Dragment Fortress": {
+    "name": "Evidestein, Ultra Dragment Fortress",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f2/Dmr16%E6%A5%B5-1a.jpg/revision/latest?cb=20200128030708",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/a/aa/Dmr16%E6%A5%B5-1b.jpg/revision/latest?cb=20200217175817"
+  },
+  "Judaiou, Jurassic Jungle": {
+    "name": "Judaiou, Jurassic Jungle",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/62/Dmr16%E7%9C%9F-4a.jpg/revision/latest?cb=20200128030723",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/fa/Dmr16%E7%9C%9F-4b.jpg/revision/latest?cb=20200217175817"
+  },
+  "Whitey, Dragon Soul Church": {
+    "name": "Whitey, Dragon Soul Church",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dm25ex2-%E8%B6%8526a.jpg/revision/latest?cb=20251010143254",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dm25ex2-%E8%B6%8526b%2B%E8%B6%8528b%2B%E8%B6%8529b%2B%E8%B6%8531b%2B%E8%B6%8532b.png/revision/latest?cb=20251018133424"
+  },
+  "Bluenika, Dragon Soul Fortress": {
+    "name": "Bluenika, Dragon Soul Fortress",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/94/Dm25ex2-%E8%B6%8528a.jpg/revision/latest?cb=20251010143317",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dm25ex2-%E8%B6%8526b%2B%E8%B6%8528b%2B%E8%B6%8529b%2B%E8%B6%8531b%2B%E8%B6%8532b.png/revision/latest?cb=20251018133424"
+  },
+  "Blacko, Dragon Soul Palace": {
+    "name": "Blacko, Dragon Soul Palace",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8d/Dm25ex2-%E8%B6%8529a.jpg/revision/latest?cb=20251010143429",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dm25ex2-%E8%B6%8526b%2B%E8%B6%8528b%2B%E8%B6%8529b%2B%E8%B6%8531b%2B%E8%B6%8532b.png/revision/latest?cb=20251018133424"
+  },
+  "Reddull, Dragon Soul Castle": {
+    "name": "Reddull, Dragon Soul Castle",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/55/Dm25ex2-%E8%B6%8531a.jpg/revision/latest?cb=20251010143441",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dm25ex2-%E8%B6%8526b%2B%E8%B6%8528b%2B%E8%B6%8529b%2B%E8%B6%8531b%2B%E8%B6%8532b.png/revision/latest?cb=20251018133424"
+  },
+  "Greene, Dragon Soul Ruins": {
+    "name": "Greene, Dragon Soul Ruins",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/4/40/Dm25ex2-%E8%B6%8532a.jpg/revision/latest?cb=20251010143450",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dm25ex2-%E8%B6%8526b%2B%E8%B6%8528b%2B%E8%B6%8529b%2B%E8%B6%8531b%2B%E8%B6%8532b.png/revision/latest?cb=20251018133424"
+  },
+  "Convoy Trailer, Temporal Commander": {
+    "name": "Convoy Trailer, Temporal Commander",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/5a/Dmx22b-116a.jpg/revision/latest?cb=20200129193431",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e3/Dmx22b-116b.jpg/revision/latest?cb=20160205144931"
+  },
+  "Duema Land ~Night Parade~": {
+    "name": "Duema Land ~Night Parade~",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b7/Dmx22b-65b.jpg/revision/latest?cb=20160205154334",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/2/22/Dmx22b-65a.jpg/revision/latest?cb=20200129193158"
+  },
+  "Duema Land ~Rainbow Dream~": {
+    "name": "Duema Land ~Rainbow Dream~",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/22/Dmx22b-65a.jpg/revision/latest?cb=20200129193158",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b7/Dmx22b-65b.jpg/revision/latest?cb=20160205154334"
+  },
+  "Shake Na Baby": {
+    "name": "Shake Na Baby",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1f/Dmex3-36a.jpg/revision/latest?cb=20200129145121",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/ff/Dmex3-36b.jpg/revision/latest?cb=20181020030354"
+  },
+  "Batogaiheart, Explosive King Sword": {
+    "name": "Batogaiheart, Explosive King Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/a1/Dm25ex4-sp4a.jpg/revision/latest?cb=20260203134450",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/38/Dm25ex4-sp4b.jpg/revision/latest?cb=20260203134454"
+  },
+  "File:Dmex8-286.jpg": {
+    "name": "File:Dmex8-286.jpg",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/16/Dmex8-yu70a.jpg/revision/latest?cb=20200210203202",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1e/Dmex8-yu70b.jpg/revision/latest?cb=20220408011855"
+  },
+  "Wataru, Legendary Savior": {
+    "name": "Wataru, Legendary Savior",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/9c/Dmex8-304a.jpg/revision/latest?cb=20200210224932",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1e/Dmex8-304b.jpg/revision/latest?cb=20200119154731"
+  },
+  "STARSCREAM -ALT MODE-": {
+    "name": "STARSCREAM -ALT MODE-",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/10/Dm25ex4-t9a.jpg/revision/latest?cb=20260207093626",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b1/Dm25ex4-t9b.jpg/revision/latest?cb=20260207093631"
+  },
+  "Redzone X, Temporal Forbidden": {
+    "name": "Redzone X, Temporal Forbidden",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e6/Dm25ex4-tr7a.jpg/revision/latest?cb=20260207101542",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8b/Dm25ex4-tr7b.jpg/revision/latest?cb=20260207101547"
+  },
+  "Nebula Horn, Passion Sword": {
+    "name": "Nebula Horn, Passion Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/3/37/Dm22ex1-118a.jpg/revision/latest?cb=20221028114357",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d2/Dm22ex1-118b.jpg/revision/latest?cb=20221028114403"
+  },
+  "Boost Play's, Crimson Lord": {
+    "name": "Boost Play's, Crimson Lord",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/fb/Dmpcd3-%E6%BF%803a.jpg/revision/latest?cb=20221023155355",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/07/Dmpcd3-%E6%BF%803b.jpg/revision/latest?cb=20230304091655"
+  },
+  "Dragonic Pippi Play's": {
+    "name": "Dragonic Pippi Play's",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/53/Dmpcd3-%E6%BF%802a.jpg/revision/latest?cb=20221023155355",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b3/Dmpcd3-%E6%BF%802b.jpg/revision/latest?cb=20230304091650"
+  },
+  "Gaisaga, Explosive Flame Greatsword": {
+    "name": "Gaisaga, Explosive Flame Greatsword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6a/Dm25ex2-%E8%B6%85g7a.jpg/revision/latest?cb=20251018112250",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d4/Dm25ex2-%E8%B6%85g7b.jpg/revision/latest?cb=20251018112253"
+  },
+  "Cyclita, Dragment Summit": {
+    "name": "Cyclita, Dragment Summit",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/85/Dm25ex4-t21a.jpg/revision/latest?cb=20260207093919",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/1/16/Dm25ex4-t21b.jpg/revision/latest?cb=20260207104602"
+  },
+  "Wil Do Tera, Dragon King Summit": {
+    "name": "Wil Do Tera, Dragon King Summit",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/c/c1/Dm25ex4-t20a.jpg/revision/latest?cb=20260207093909",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/34/Dm25ex4-t20b.jpg/revision/latest?cb=20260207104558"
+  },
+  "Miracle Z, Summit Elemental": {
+    "name": "Miracle Z, Summit Elemental",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6b/Dm25ex4-t19a.jpg/revision/latest?cb=20260207093904",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/48/Dm25ex4-t19b.jpg/revision/latest?cb=20260207104555"
+  },
+  "Forever Emperor World, Legendary Dragon Soul Group": {
+    "name": "Forever Emperor World, Legendary Dragon Soul Group",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f5/Dm23ex2-21a.jpg/revision/latest?cb=20231012112750",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/d/d6/Dm23ex2-21b.jpg/revision/latest?cb=20231012112754"
+  },
+  "File:Dm25bd3-17.jpg": {
+    "name": "File:Dm25bd3-17.jpg",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/de/Dm25bd3-6a.jpg/revision/latest?cb=20251118130851",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/1/10/Dm25bd3-6b.jpg/revision/latest?cb=20251118130858"
+  },
+  "Legend Horn, Passion Sword": {
+    "name": "Legend Horn, Passion Sword",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/0/00/Dm25bd3-8a.jpg/revision/latest?cb=20251118130918",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/0/09/Dm25bd3-8b.jpg/revision/latest?cb=20251118130925"
+  },
+  "Nike, Golmic Cosmos": {
+    "name": "Nike, Golmic Cosmos",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/dd/Dm25ex4-pr1a.jpg/revision/latest?cb=20260203135414",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f6/Dm25ex4-pr1b.jpg/revision/latest?cb=20260203135417"
+  },
+  "Michaelangelo, Golmic Beauty": {
+    "name": "Michaelangelo, Golmic Beauty",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f6/Dm25ex4-pr1b.jpg/revision/latest?cb=20260203135417",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f8/Dm25ex4-pr1c.jpg/revision/latest?cb=20260203135420"
+  },
+  "Robby, Cho Visionary": {
+    "name": "Robby, Cho Visionary",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/5/51/Dm25ex4-pr2a.jpg/revision/latest?cb=20260208112719",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/a/a3/Dm25ex4-pr2b.jpg/revision/latest?cb=20260203135427"
+  },
+  "Robin Hood, Mutcha Visionary": {
+    "name": "Robin Hood, Mutcha Visionary",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/a3/Dm25ex4-pr2b.jpg/revision/latest?cb=20260203135427",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8d/Dm25ex4-pr2c.jpg/revision/latest?cb=20260203135430"
+  },
+  "Bhutan, Piggy Immortal": {
+    "name": "Bhutan, Piggy Immortal",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/0/0b/Dm25ex4-pr3a.jpg/revision/latest?cb=20260203135433",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/a/a5/Dm25ex4-pr3b.jpg/revision/latest?cb=20260203135436"
+  },
+  "British, Hell Immortal": {
+    "name": "British, Hell Immortal",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/a/a5/Dm25ex4-pr3b.jpg/revision/latest?cb=20260203135436",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3e/Dm25ex4-pr3c.jpg/revision/latest?cb=20260203135440"
+  },
+  "Katsudon, V V V Dragon": {
+    "name": "Katsudon, V V V Dragon",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/7/71/Dm25ex4-pr4a.jpg/revision/latest?cb=20260203135443",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8f/Dm25ex4-pr4b.jpg/revision/latest?cb=20260203135446"
+  },
+  "Katsuking, V V V Shogun": {
+    "name": "Katsuking, V V V Shogun",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/8/8f/Dm25ex4-pr4b.jpg/revision/latest?cb=20260203135446",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/4/4d/Dm25ex4-pr4c.jpg/revision/latest?cb=20260203135600"
+  },
+  "Goromaru, Fanfare Horn": {
+    "name": "Goromaru, Fanfare Horn",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/d/dd/Dm25ex4-pr5a.jpg/revision/latest?cb=20260203135453",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ef/Dm25ex4-pr5b.jpg/revision/latest?cb=20260203135457"
+  },
+  "Global, Matter Fanfare": {
+    "name": "Global, Matter Fanfare",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/ef/Dm25ex4-pr5b.jpg/revision/latest?cb=20260203135457",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/7/7c/Dm25ex4-pr5c.jpg/revision/latest?cb=20260203135501"
+  },
+  "Morning ABYFLHA Kaiser": {
+    "name": "Morning ABYFLHA Kaiser",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/1/1f/Dm25ex4-s11a.jpg/revision/latest?cb=20260203140307",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/97/Dm25ex4-s11b.jpg/revision/latest?cb=20260203140301"
+  },
+  "Takano Deis, Champion Wrestler": {
+    "name": "Takano Deis, Champion Wrestler",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/e/e3/Dm25ex4-s12a.jpg/revision/latest?cb=20260203140253",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6d/Dm25ex4-s12b.jpg/revision/latest?cb=20260203140248"
+  },
+  "File:Dm25ex4-s11a.jpg": {
+    "name": "File:Dm25ex4-s11a.jpg",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/2d/Dm25ex4-s9a.jpg/revision/latest?cb=20260203140319",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/9b/Dm25ex4-s9b.jpg/revision/latest?cb=20260203140314"
+  },
+  "Mil Armor, Temporal Mecha King": {
+    "name": "Mil Armor, Temporal Mecha King",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/65/Dm25ex4-1a.jpg/revision/latest?cb=20260206151233",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6d/Dm25ex4-1b.jpg/revision/latest?cb=20260206151238"
+  },
+  "Ava and Armor, Awakened Dromar": {
+    "name": "Ava and Armor, Awakened Dromar",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/6/6d/Dm25ex4-1b.jpg/revision/latest?cb=20260206151238",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/6/65/Dm25ex4-1a.jpg/revision/latest?cb=20260206151233"
+  },
+  "Dondon Crawler, Temporal Suction": {
+    "name": "Dondon Crawler, Temporal Suction",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/9/96/Dm25ex4-4a.jpg/revision/latest?cb=20260206151250",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/9/95/Dm25ex4-4b.jpg/revision/latest?cb=20260206151255"
+  },
+  "Yaminozanji, Temporal Shinobi": {
+    "name": "Yaminozanji, Temporal Shinobi",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/2/27/Dm25ex4-7a.jpg/revision/latest?cb=20260206151322",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/f/f0/Dm25ex4-7b.jpg/revision/latest?cb=20260206151329"
+  },
+  "Master Lupia, Temporal Kizuna": {
+    "name": "Master Lupia, Temporal Kizuna",
+    "image_url": "https://static.wikia.nocookie.net/duelmasters/images/b/b1/Dm25ex4-s7a.jpg/revision/latest?cb=20260206150823",
+    "back_url": "https://static.wikia.nocookie.net/duelmasters/images/3/3d/Dm25ex4-s7b.jpg/revision/latest?cb=20260206150829"
+  }
+}

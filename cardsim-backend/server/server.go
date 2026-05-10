@@ -16,6 +16,9 @@ func RegisterRoutes(hub *Hub) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/cards", handleGetCards)
+	mux.HandleFunc("/api/cards/update", handleUpdateCard)
+	mux.HandleFunc("/api/cards/add", handleAddCard)
+	mux.HandleFunc("/api/cards/by-names", handleGetCardsByNames)
 	mux.HandleFunc("/api/auth/register", handleRegister)
 	mux.HandleFunc("/api/auth/login", handleLogin)
 	mux.HandleFunc("/api/auth/google", handleGoogleLogin)
@@ -128,22 +131,40 @@ func withCORS(next http.Handler) http.Handler {
 }
 
 func handleGetCards(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query().Get("q")
-	lang := r.URL.Query().Get("lang")
-	pageStr := r.URL.Query().Get("page")
-	limitStr := r.URL.Query().Get("limit")
+	query := r.URL.Query()
+	q := query.Get("q")
+	lang := query.Get("lang")
+	pageStr := query.Get("page")
+	limitStr := query.Get("limit")
+
+	civs := query["civ"] // multiple ?civ=Fire&civ=Nature
+	cardTypes := query["type"]
+	costStr := query.Get("cost")
+	powerStr := query.Get("power")
+	race := query.Get("race")
+	abilities := query["ability"]
+	rarity := query.Get("rarity")
 
 	page, _ := strconv.Atoi(pageStr)
-	if page <= 0 {
-		page = 1
-	}
+	if page <= 0 { page = 1 }
 
 	limit, _ := strconv.Atoi(limitStr)
-	if limit <= 0 {
-		limit = 20
+	if limit <= 0 { limit = 20 }
+
+	cost := -1
+	if costStr != "" {
+		cost, _ = strconv.Atoi(costStr)
 	}
 
-	cards, total := data.GetCardsPaginated(q, lang, page, limit)
+	power := -1
+	if powerStr != "" {
+		power, _ = strconv.Atoi(powerStr)
+	}
+
+	setFilter := query.Get("set")
+	doubleSided := query.Get("doubleSided") == "true"
+
+	cards, total := data.GetCardsPaginated(q, lang, page, limit, civs, cardTypes, cost, power, race, abilities, rarity, setFilter, doubleSided)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -154,4 +175,68 @@ func handleGetCards(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func handleGetCardsByNames(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
+	var request struct {
+		Names []string `json:"names"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	cards := data.GetCardsByNames(request.Names)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(cards)
+}
+
+func handleUpdateCard(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodPut {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var request struct {
+		Card          models.Card `json:"card"`
+		OriginalName  string      `json:"original_name"`
+		OriginalImage string      `json:"original_image"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Bad Request: Expected wrap with 'card' field", http.StatusBadRequest)
+		return
+	}
+
+	if err := data.UpdateCard(request.Card, request.OriginalName, request.OriginalImage); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func handleAddCard(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var card models.Card
+	if err := json.NewDecoder(r.Body).Decode(&card); err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	if err := data.AddCard(card); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
