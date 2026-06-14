@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { WS_URL } from "../../lib/api";
 import { takeGameSocket } from "../../lib/gameSocket";
 import { MultiplayerGameBoard } from "../../components/MultiplayerGameBoard";
-import { GameCard, PlayerId } from "../../store/gameStore";
+import { GameCard, PlayerId, useGameStore } from "../../store/gameStore";
 
 interface GameSession {
   myRole: PlayerId;
@@ -52,7 +52,12 @@ export default function GamePage() {
     const existingSocket = takeGameSocket();
 
     if (existingSocket && existingSocket.readyState === WebSocket.OPEN) {
-      // Reuse — the room is still active on the server, no REJOIN needed
+      // Reuse the lobby's WS, but still send REJOIN_ROOM because the server
+      // may have cleared the client pointer during lobby→game navigation.
+      const roomId = sessionStorage.getItem("cardsim_game_roomId");
+      if (roomId) {
+        existingSocket.send(JSON.stringify({ type: "REJOIN_ROOM", payload: { id: roomId, role: parsed.myRole } }));
+      }
       wsRef.current = existingSocket;
       setSession(parsed);
       setPageState("ready");
@@ -63,15 +68,34 @@ export default function GamePage() {
     // (e.g. page was hard-refreshed)
     const socket = new WebSocket(`${WS_URL}?token=${token}`);
     wsRef.current = socket;
+    const roomId = sessionStorage.getItem("cardsim_game_roomId");
+    const myRole = parsed.myRole;
 
     socket.onopen = () => {
-      const roomId = sessionStorage.getItem("cardsim_game_roomId");
+      // Send REJOIN_ROOM immediately to re-associate with the room
+      // and receive the cached game state from the server.
       if (roomId) {
-        socket.send(JSON.stringify({ type: "REJOIN_ROOM", payload: { id: roomId } }));
+        socket.send(JSON.stringify({ type: "REJOIN_ROOM", payload: { id: roomId, role: myRole } }));
       }
       setSession(parsed);
       setPageState("ready");
     };
+
+    // Listen for GAME_STATE_RESTORE from the server (sent in response to REJOIN_ROOM)
+    // We apply it to the store BEFORE MultiplayerGameBoard mounts to avoid race conditions.
+    const handleRestore = (event: MessageEvent) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "GAME_STATE_RESTORE" && msg.payload?.zones && msg.payload?.cards) {
+          console.log("[GAME PAGE] Applying GAME_STATE_RESTORE before board mounts");
+          const { applyFullSync } = useGameStore.getState();
+          applyFullSync(msg.payload.zones, msg.payload.cards, msg.payload.currentPlayer, msg.payload.currentPhase);
+          // Set a flag so MultiplayerGameBoard knows to skip initializeGameFromDecks
+          (window as any).__cardsim_state_restored = true;
+        }
+      } catch {}
+    };
+    socket.addEventListener("message", handleRestore);
 
     socket.onerror = () => {
       setErrorMsg("Error de conexión con el servidor.");
@@ -79,6 +103,7 @@ export default function GamePage() {
     };
 
     return () => {
+      socket.removeEventListener("message", handleRestore);
       // Only close if we created this socket (not the reused lobby one)
       socket.close();
     };
@@ -88,7 +113,7 @@ export default function GamePage() {
     wsRef.current?.close();
     sessionStorage.removeItem("cardsim_game_session");
     sessionStorage.removeItem("cardsim_game_roomId");
-    router.push("/");
+    router.push("/lobby");
   };
 
   if (pageState === "connecting") {

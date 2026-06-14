@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: cardsim-backend/Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - ./cardsim-backend/cardsim.db:/app/cardsim-backend/cardsim.db
+      - ./cards.json:/app/cards.json
+      - ./double_side_cards.json:/app/double_side_cards.json
+    environment:
+      - GIN_MODE=release
+
+  frontend:
+    build:
+      context: ./cardsim
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8080/ws
+    restart: unless-stopped
+    depends_on:
+      - backend

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { WS_URL } from "../../lib/api";
+import { WS_URL, fetchDecks } from "../../lib/api";
 import { saveGameSocket } from "../../lib/gameSocket";
 import { GameCard, PlayerId } from "../../store/gameStore";
 
@@ -59,19 +59,92 @@ export default function LobbyPage() {
   const decksRef = useRef<typeof decks>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("cardsim_decks");
-    if (saved) {
+    const initDecks = async () => {
+      let finalDecks: any[] = [];
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Store full deck objects (including card arrays)
-          setDecks(parsed);
-          decksRef.current = parsed;
-          setSelectedDeckId(parsed[0].id);
-          selectedDeckIdRef.current = parsed[0].id;
+        const token = localStorage.getItem("cardsim_token");
+        if (token) {
+          const backendDecks = await fetchDecks();
+          if (backendDecks && backendDecks.length > 0) {
+            finalDecks = backendDecks.map(d => ({
+              id: d.id.toString(),
+              name: d.name,
+              mainDeck: d.main_deck || [],
+              gZone: d.g_zone || [],
+              hyperspatial: d.hyperspatial || [],
+              legendary: d.legendary || []
+            }));
+          }
         }
-      } catch (e) {}
-    }
+      } catch (err) {
+        console.error("Backend fetch failed:", err);
+      }
+
+      if (finalDecks.length === 0) {
+        const saved = localStorage.getItem("cardsim_decks");
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              finalDecks = parsed;
+            }
+          } catch (e) {}
+        }
+      }
+
+      // If still no decks or the first deck is empty, let's create a starter deck with 40 cards
+      const hasValidDeck = finalDecks.some(d => d.mainDeck && d.mainDeck.length > 0);
+      if (!hasValidDeck) {
+        try {
+          const { fetchCards } = await import("../../lib/api");
+          const cardsData = await fetchCards("", 1, 40);
+          if (cardsData && cardsData.cards && cardsData.cards.length > 0) {
+            const starterCards = cardsData.cards.map((c: any, i: number) => ({
+              id: `starter_${i}`,
+              name: c.name_en || c.name_ja || "Unknown Card",
+              nameJa: c.name_ja,
+              nameEn: c.name_en,
+              image: c.image_url,
+              description: c.abilities_en || c.abilities_ja || "",
+              descriptionJa: c.abilities_ja,
+              descriptionEn: c.abilities_en,
+              manaCost: c.cost || c.mana || "-",
+              attack: c.power || "-",
+              civilization: c.civilization || "",
+              raceEn: c.race_en || "",
+              raceJa: c.race_ja || "",
+              typeEn: c.type_en || "",
+              typeJa: c.type_ja || "",
+              backs: c.backs || []
+            }));
+
+            const starterDeck = {
+              id: "starter_deck",
+              name: "Mazo Inicial (40 Cartas)",
+              mainDeck: starterCards,
+              gZone: [],
+              hyperspatial: [],
+              legendary: []
+            };
+            finalDecks = [starterDeck, ...finalDecks.filter(d => d.id !== "starter_deck")];
+            localStorage.setItem("cardsim_decks", JSON.stringify(finalDecks));
+          }
+        } catch (e) {
+          console.error("Failed to fetch starter cards:", e);
+        }
+      }
+
+      if (finalDecks.length > 0) {
+        setDecks(finalDecks);
+        decksRef.current = finalDecks;
+        // Select the first non-empty deck if possible
+        const bestDeck = finalDecks.find(d => d.mainDeck && d.mainDeck.length > 0) || finalDecks[0];
+        setSelectedDeckId(bestDeck.id);
+        selectedDeckIdRef.current = bestDeck.id;
+      }
+    };
+
+    initDecks();
   }, []);
 
   // Keep refs in sync with state for use inside WS handler closures

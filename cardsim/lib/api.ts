@@ -1,5 +1,23 @@
-export const API_URL = "http://localhost:8080/api";
-export const WS_URL = "ws://localhost:8080/ws";
+const getBackendUrls = () => {
+  if (typeof window === "undefined") {
+    return {
+      API_URL: "http://localhost:8080/api",
+      WS_URL: "ws://localhost:8080/ws"
+    };
+  }
+  const host = window.location.hostname;
+  const protocol = window.location.protocol;
+  const wsProtocol = protocol === "https:" ? "wss:" : "ws:";
+  
+  return {
+    API_URL: `${protocol}//${host}:8080/api`,
+    WS_URL: `${wsProtocol}//${host}:8080/ws`
+  };
+};
+
+const urls = getBackendUrls();
+export const API_URL = urls.API_URL;
+export const WS_URL = urls.WS_URL;
 
 export interface PaginatedCards {
   cards: any[];

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { login, register } from "../../lib/api";
+import { login, register, API_URL } from "../../lib/api";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 
 export default function AuthPage() {
@@ -32,7 +32,7 @@ export default function AuthPage() {
     try {
       if (response.credential) {
         // Here we hit our Go backend Google Auth endpoint
-        const res = await fetch("http://localhost:8080/api/auth/google", {
+        const res = await fetch(`${API_URL}/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token: response.credential })

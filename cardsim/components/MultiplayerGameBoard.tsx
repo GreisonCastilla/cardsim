@@ -46,7 +46,34 @@ let feedCounter = 0;
 
 function sendWsAction(ws: WebSocket, action: GameAction) {
   if (ws.readyState === WebSocket.OPEN) {
+    // Send the action to the other player via GAME_ACTION relay
     ws.send(JSON.stringify({ type: "GAME_ACTION", payload: action }));
+
+    // Persist full state to the server cache (for page-reload recovery)
+    // using STATE_CACHE — this is NOT relayed to the opponent.
+    if (
+      action.actionType !== "CURSOR_MOVE" &&
+      action.actionType !== "FULL_SYNC" &&
+      action.actionType !== "REQUEST_SYNC" &&
+      action.actionType !== "SURRENDER"
+    ) {
+      // Use a small delay to let Zustand commit the state update
+      setTimeout(() => {
+        if (ws.readyState !== WebSocket.OPEN) return;
+        const state = useGameStore.getState();
+        ws.send(
+          JSON.stringify({
+            type: "STATE_CACHE",
+            payload: {
+              zones: state.zones,
+              cards: state.cards,
+              currentPlayer: state.currentPlayer,
+              currentPhase: state.currentPhase,
+            },
+          })
+        );
+      }, 50);
+    }
   }
 }
 
@@ -126,7 +153,24 @@ function applyRemoteAction(action: GameAction) {
         store.applyFullSync(action.zones, action.cards, action.currentPlayer, action.currentPhase);
       }
       break;
-
+    case "REQUEST_SYNC":
+      if (store.myRole === "p1") {
+        // P2 requested a sync — send the full state as FULL_SYNC via GAME_ACTION
+        const ws = (window as any)._cardsim_ws;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: "GAME_ACTION",
+            payload: {
+              actionType: "FULL_SYNC",
+              zones: store.zones,
+              cards: store.cards,
+              currentPlayer: store.currentPlayer,
+              currentPhase: store.currentPhase,
+            },
+          }));
+        }
+      }
+      break;
   }
 }
 
@@ -208,23 +252,66 @@ export function MultiplayerGameBoard({
   // ── Initialize game + send zone sync ──────────────────────────────────────
   useEffect(() => {
     setMounted(true);
+    
+    // Store ws globally so applyRemoteAction can use it for REQUEST_SYNC
+    (window as any)._cardsim_ws = ws;
+
+    // Check if state was already restored from server (page reload scenario)
+    const restoredFlag = (window as any).__cardsim_state_restored;
+    if (restoredFlag) {
+      // State was already applied from GAME_STATE_RESTORE — skip re-initialization.
+      // Just cache the current state on the server.
+      delete (window as any).__cardsim_state_restored;
+      const state = useGameStore.getState();
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: "STATE_CACHE",
+          payload: {
+            zones: state.zones,
+            cards: state.cards,
+            currentPlayer: state.currentPlayer,
+            currentPhase: state.currentPhase,
+          },
+        }));
+      }
+      return;
+    }
+
+    // Normal first load: initialize the game from deck cards
     initializeGameFromDecks(myDeckCards, opponentDeckCards, myRole);
 
     // Delay slightly so the store commits the initialization before we read it.
     const timer = setTimeout(() => {
-      // Use getState() here — called inside a timeout, not during a React render.
       const state = useGameStore.getState();
       
       if (myRole === "p1") {
-        // Robust Full Sync from Host to Guest
-        sendWsAction(ws, { 
-          actionType: "FULL_SYNC", 
-          zones: state.zones, 
-          cards: state.cards,
-          currentPlayer: state.currentPlayer,
-          currentPhase: state.currentPhase,
-          senderRole: myRole 
-        });
+        // Host sends FULL_SYNC to Guest + caches on server
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: "GAME_ACTION",
+            payload: {
+              actionType: "FULL_SYNC",
+              zones: state.zones,
+              cards: state.cards,
+              currentPlayer: state.currentPlayer,
+              currentPhase: state.currentPhase,
+            },
+          }));
+          ws.send(JSON.stringify({
+            type: "STATE_CACHE",
+            payload: {
+              zones: state.zones,
+              cards: state.cards,
+              currentPlayer: state.currentPlayer,
+              currentPhase: state.currentPhase,
+            },
+          }));
+        }
+      } else {
+        // Guest: request sync from Host in case we missed the initial FULL_SYNC
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "GAME_ACTION", payload: { actionType: "REQUEST_SYNC" } }));
+        }
       }
     }, 500);
 
@@ -280,8 +367,18 @@ export function MultiplayerGameBoard({
           const desc = describAction(action, opponentNameRef.current);
           if (desc) pushFeedRef.current(desc);
         }
+      } else if (msg.type === "GAME_STATE_RESTORE") {
+        // Server sent cached state (from REJOIN_ROOM or JOIN_ROOM)
+        const payload = msg.payload;
+        if (payload && payload.zones && payload.cards) {
+          console.log("[SYNC] Applying GAME_STATE_RESTORE from server");
+          const store = useGameStore.getState();
+          store.applyFullSync(payload.zones, payload.cards, payload.currentPlayer, payload.currentPhase);
+        }
       } else if (msg.type === "OPPONENT_SURRENDERED") {
         showNotifRef.current(`${opponentNameRef.current} se ha rendido. ¡Ganaste!`, "info");
+        alert(`${opponentNameRef.current} se ha rendido. ¡Ganaste!`);
+        onExit();
       }
     };
 
@@ -629,18 +726,7 @@ export function MultiplayerGameBoard({
     }
     wrappedNextPhase();
     
-    // If the turn ended, send a full sync to the server so it persists the state for the next player
-    const state = useGameStore.getState();
-    if (state.currentPhase === 'Start' || state.currentPhase === 'End') {
-      sendWsAction(ws, { 
-        actionType: "FULL_SYNC", 
-        zones: state.zones, 
-        cards: state.cards,
-        currentPlayer: state.currentPlayer,
-        currentPhase: state.currentPhase,
-        senderRole: myRole 
-      });
-    }
+
   }, [isMyTurn, wrappedNextPhase, ws, myRole]);
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────

@@ -120,17 +120,24 @@ func (h *Hub) removeClientFromRooms(client *Client) {
 				delete(h.rooms, id)
 				continue
 			} else {
-				// Game already started, just nullify the pointer
+				// Game already started — nullify the pointer but KEEP the room alive.
+				// The player will reconnect with a new WS from the /game page
+				// and re-associate via REJOIN_ROOM.
 				room.Host = nil
+				log.Printf("removeClientFromRooms: Host disconnected from room %s (game active, keeping room)", id)
 			}
 		} else if room.Guest == client {
-			room.Guest = nil
 			if !room.GameStarted {
+				room.Guest = nil
 				room.GuestReady = false
 				room.GuestName = ""
 				if room.Host != nil {
 					h.sendToClient(room.Host, "GUEST_LEFT", nil)
 				}
+			} else {
+				// Game already started — nullify the pointer but KEEP the room alive.
+				room.Guest = nil
+				log.Printf("removeClientFromRooms: Guest disconnected from room %s (game active, keeping room)", id)
 			}
 		}
 		room.mu.Unlock()
@@ -278,10 +285,11 @@ func (h *Hub) handleMessage(c *Client, data []byte) {
 	case "REJOIN_ROOM":
 		// Called by the /game page after reconnecting to re-associate the client with their room
 		var req struct {
-			ID string `json:"id"`
+			ID   string `json:"id"`
+			Role string `json:"role"`
 		}
 		if err := json.Unmarshal(msg.Payload, &req); err == nil {
-			h.rejoinRoom(c, req.ID)
+			h.rejoinRoom(c, req.ID, req.Role)
 		}
 	case "LEAVE_ROOM":
 		h.mu.Lock()
@@ -314,23 +322,21 @@ func (h *Hub) handleMessage(c *Client, data []byte) {
 		if err := json.Unmarshal(msg.Payload, &req); err == nil {
 			h.selectDeck(c, req.DeckName, req.DeckCards)
 		}
-	case "GAME_ACTION":
-		// Store state if it's a FULL_SYNC
+	case "STATE_CACHE":
+		// Store game state on the server for page-reload recovery.
+		// This is NOT relayed to the opponent — it's server-side persistence only.
 		h.mu.Lock()
 		room := h.findRoomByClient(c)
 		if room != nil {
-			var action struct {
-				ActionType string `json:"actionType"`
-			}
-			if err := json.Unmarshal(msg.Payload, &action); err == nil && action.ActionType == "FULL_SYNC" {
-				room.mu.Lock()
-				room.GameState = msg.Payload
-				room.mu.Unlock()
-			}
+			room.mu.Lock()
+			room.GameState = msg.Payload
+			log.Printf("STATE_CACHE: stored game state for room %s (from %s)\n", room.ID, c.Username)
+			room.mu.Unlock()
 		}
 		h.mu.Unlock()
-
-		// Relay verbatim to the other player in the same room
+	case "GAME_ACTION":
+		// Relay verbatim to the other player in the same room.
+		// No state caching here — STATE_CACHE handles persistence separately.
 		h.relayGameAction(c, msg.Payload)
 	}
 }
@@ -364,17 +370,26 @@ func (h *Hub) selectDeck(c *Client, deckName string, deckCards json.RawMessage) 
 // IMPORTANT: We must release all locks before writing to any client.send channel
 // to prevent deadlocks (writePump also acquires locks in some paths).
 func (h *Hub) relayGameAction(c *Client, payload json.RawMessage) {
+	// Parse action type for logging
+	var actionInfo struct {
+		ActionType string `json:"actionType"`
+	}
+	json.Unmarshal(payload, &actionInfo)
+
 	// Step 1: find target while holding both locks, then release them
 	var target *Client
 	var msgType string = "GAME_ACTION"
+	var roomID string
 
 	h.mu.Lock()
 	for _, room := range h.rooms {
 		room.mu.Lock()
 		if room.Host == c {
 			target = room.Guest
+			roomID = room.ID
 		} else if room.Guest == c {
 			target = room.Host
+			roomID = room.ID
 		}
 		room.mu.Unlock()
 		if target != nil {
@@ -385,14 +400,18 @@ func (h *Hub) relayGameAction(c *Client, payload json.RawMessage) {
 
 	// Step 2: no locks held — safe to send to channel
 	if target == nil {
+		if actionInfo.ActionType != "CURSOR_MOVE" {
+			log.Printf("relayGameAction: NO TARGET found for client %s (action: %s). Client not in any room.", c.Username, actionInfo.ActionType)
+		}
 		return
 	}
 
-	// Check for SURRENDER
-	var action struct {
-		ActionType string `json:"actionType"`
+	if actionInfo.ActionType != "CURSOR_MOVE" {
+		log.Printf("relayGameAction: relaying %s from %s to %s in room %s", actionInfo.ActionType, c.Username, target.Username, roomID)
 	}
-	if err := json.Unmarshal(payload, &action); err == nil && action.ActionType == "SURRENDER" {
+
+	// Check for SURRENDER
+	if actionInfo.ActionType == "SURRENDER" {
 		msgType = "OPPONENT_SURRENDERED"
 		payload = nil
 	}
@@ -415,7 +434,7 @@ func (h *Hub) relayGameAction(c *Client, payload json.RawMessage) {
 }
 
 // rejoinRoom re-associates a reconnected client (/game page WS) with an active room.
-func (h *Hub) rejoinRoom(c *Client, roomID string) {
+func (h *Hub) rejoinRoom(c *Client, roomID string, role string) {
 	h.mu.Lock()
 	room, exists := h.rooms[roomID]
 	if !exists {
@@ -428,18 +447,29 @@ func (h *Hub) rejoinRoom(c *Client, roomID string) {
 	defer room.mu.Unlock()
 	h.mu.Unlock()
 
-	// Re-associate by username
-	if room.HostName == c.Username {
+	// Re-associate by role if provided, otherwise fallback to username
+	if role == "p1" {
 		room.Host = c
-		log.Printf("REJOIN_ROOM: %s rejoined as host in room %s\n", c.Username, roomID)
-	} else if room.GuestName == c.Username {
+		log.Printf("REJOIN_ROOM: %s rejoined as host (role p1) in room %s\n", c.Username, roomID)
+	} else if role == "p2" {
 		room.Guest = c
-		log.Printf("REJOIN_ROOM: %s rejoined as guest in room %s\n", c.Username, roomID)
+		log.Printf("REJOIN_ROOM: %s rejoined as guest (role p2) in room %s\n", c.Username, roomID)
+	} else {
+		// Fallback re-association by username
+		if room.HostName == c.Username {
+			room.Host = c
+			log.Printf("REJOIN_ROOM: %s rejoined as host (username) in room %s\n", c.Username, roomID)
+		} else if room.GuestName == c.Username {
+			room.Guest = c
+			log.Printf("REJOIN_ROOM: %s rejoined as guest (username) in room %s\n", c.Username, roomID)
+		}
 	}
 
-	// Send current game state if it exists
+	// Send current game state if it exists — use a distinct message type
+	// so the client knows this is a state restore, not a regular game action.
 	if room.GameState != nil {
-		h.sendToClient(c, "GAME_ACTION", room.GameState)
+		log.Printf("REJOIN_ROOM: sending GAME_STATE_RESTORE to %s for room %s\n", c.Username, roomID)
+		h.sendToClient(c, "GAME_STATE_RESTORE", room.GameState)
 	}
 }
 
@@ -543,7 +573,7 @@ func (h *Hub) joinRoom(c *Client, id, password string) {
 	// Send current game state if it exists
 	room.mu.Lock()
 	if room.GameState != nil {
-		h.sendToClient(c, "GAME_ACTION", room.GameState)
+		h.sendToClient(c, "GAME_STATE_RESTORE", room.GameState)
 	}
 	room.mu.Unlock()
 
@@ -566,7 +596,7 @@ func (h *Hub) setReady(c *Client) {
 			h.sendToClient(room.Guest, "READY_STATE", room.GuestReady)
 		}
 
-		if room.HostReady && room.GuestReady {
+		if room.HostReady && room.GuestReady && room.Host != nil && room.Guest != nil {
 			room.GameStarted = true
 			// Build GAME_START payload for host (host = p1, guest = p2)
 			hostPayload := map[string]interface{}{
