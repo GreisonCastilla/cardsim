@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SkipForward, Lock } from 'lucide-react';
+import { SkipForward } from 'lucide-react';
 import { cn } from "../lib/utils";
 import { PlayerId, PhaseName, PHASES } from "../store/gameStore";
 
@@ -9,46 +9,66 @@ interface PhaseHudProps {
   currentPhase: PhaseName;
   currentPlayer: PlayerId;
   nextPhase: () => void;
-  isMyTurn?: boolean; // When false, disables the Next Step button
+  combatLinksCount: number;
+  clearCombatLinks: () => void;
 }
 
-export function PhaseHud({ currentPhase, currentPlayer, nextPhase, isMyTurn = true }: PhaseHudProps) {
+export function PhaseHud({ currentPhase, currentPlayer, nextPhase, combatLinksCount, clearCombatLinks }: PhaseHudProps) {
   return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500] pointer-events-none w-full flex justify-center">
-      <div className="flex items-center bg-[#0f172a]/80 backdrop-blur-[12px] border border-white/10 p-0.5 px-3 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.5),0_0_10px_rgba(255,255,255,0.05)] pointer-events-auto h-8 transition-all scale-95 origin-center">
+    <div className="flex justify-center items-center">
+      <div className="flex items-center glass px-2 rounded-full shadow-2xl pointer-events-auto h-5 transition-all transform hover:scale-[1.02] border border-white/[0.06] bg-slate-900/50 backdrop-blur-xl">
+
+
+        {/* Turn Indicator */}
         <div className={cn(
-          "px-3 h-5 rounded-full flex items-center gap-2 mr-3 shadow-inner",
+          "px-1.5 h-full py-0.5 rounded-full flex items-center gap-1 mr-1.5",
           currentPlayer === "p1"
-            ? "bg-blue-500/20 border border-blue-400/30 text-blue-400"
-            : "bg-red-500/20 border border-red-400/30 text-red-400"
+            ? "bg-blue-500/10 border border-blue-500/15 text-blue-400"
+            : "bg-purple-500/10 border border-purple-500/15 text-purple-400"
         )}>
-          <div className={cn("w-1 h-1 rounded-full animate-pulse", currentPlayer === "p1" ? "bg-blue-400 shadow-[0_0_8px_#60a5fa]" : "bg-red-400 shadow-[0_0_8px_#f87171]")} />
-          <span className="text-[9px] font-black uppercase tracking-[0.2em]">{currentPlayer}</span>
+          <div className={cn(
+            "w-1.5 h-1.5 rounded-full animate-pulse",
+            currentPlayer === "p1" ? "bg-blue-400 shadow-[0_0_5px_#60a5fa]" : "bg-purple-400 shadow-[0_0_5px_#a855f7]"
+          )} />
+          <span className="text-[8px] font-black uppercase tracking-wide leading-none">{currentPlayer === "p1" ? "TU TURNO" : "OPONENTE"}</span>
         </div>
-        <div className="flex items-center gap-2.5 px-2">
+
+        {/* Phases List */}
+        <div className="flex items-center gap-1.5 px-1.5 border-l border-white/[0.06] h-full">
           {PHASES.map((phase) => (
-            <span key={phase} className={cn("text-[8px] font-bold uppercase tracking-widest", currentPhase === phase ? "text-white opacity-100 drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]" : "text-slate-500 opacity-40")}>{phase}</span>
+            <div key={phase} className="flex flex-col items-center justify-center relative h-full">
+              <span className={cn(
+                "text-[8px] font-bold uppercase tracking-wide transition-all duration-300 leading-none",
+                currentPhase === phase
+                  ? "text-white drop-shadow-[0_0_3px_rgba(255,255,255,0.3)]"
+                  : "text-slate-500 opacity-25 hover:opacity-40"
+              )}>
+                {phase}
+              </span>
+              {currentPhase === phase && (
+                <div className="absolute bottom-0 w-full h-[1.5px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+              )}
+            </div>
           ))}
         </div>
+
+        {combatLinksCount > 0 && (
+          <button
+            onClick={clearCombatLinks}
+            className="ml-1.5 px-1.5 h-full py-0.5 border border-red-500/20 bg-red-500/8 rounded-full flex items-center gap-1 text-[8px] font-black text-red-400 hover:text-red-300 hover:bg-red-500/15 uppercase tracking-wide leading-none transition-all cursor-pointer"
+          >
+            Clear ({combatLinksCount})
+          </button>
+        )}
+
+        {/* Next Button */}
         <button
-          onClick={isMyTurn ? nextPhase : undefined}
-          disabled={!isMyTurn}
-          title={isMyTurn ? "Avanzar fase (N)" : "Esperando tu turno..."}
-          className={cn(
-            "ml-3 pl-4 pr-2 h-5 border-l border-white/10 flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.2em] group transition-all",
-            isMyTurn
-              ? "text-blue-400/70 hover:text-blue-400 cursor-pointer"
-              : "text-slate-600 cursor-not-allowed opacity-40"
-          )}
+          onClick={nextPhase}
+          className="ml-1.5 pl-1.5 pr-0.5 h-full border-l border-white/[0.06] flex items-center gap-1 text-[8px] font-black text-blue-400 hover:text-blue-300 uppercase tracking-wide leading-none group transition-all cursor-pointer"
         >
-          <span className={cn(isMyTurn && "drop-shadow-[0_0_5px_rgba(96,165,250,0.5)]")}>
-            {isMyTurn ? "Next Step" : "Waiting..."}
-          </span>
-          <div className={cn("p-0.5 rounded-md transition-all", isMyTurn ? "bg-blue-500/10 group-hover:bg-blue-500/20" : "bg-slate-800/50")}>
-            {isMyTurn
-              ? <SkipForward size={10} className="text-blue-400" />
-              : <Lock size={10} className="text-slate-600" />
-            }
+          <span>Sig.</span>
+          <div className="bg-blue-500/10 p-0.5 rounded-sm group-hover:bg-blue-500/20 transition-all border border-blue-500/8">
+            <SkipForward size={8} fill="currentColor" />
           </div>
         </button>
       </div>

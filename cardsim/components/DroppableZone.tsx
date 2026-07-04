@@ -18,9 +18,16 @@ interface DroppableZoneProps {
   manaCards?: string[]; // IDs of cards in mana
   cardsData?: Record<string, any>;
   style?: React.CSSProperties;
+  onContextMenu?: (e: React.MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
+  showCount?: boolean;
 }
 
-export function DroppableZone({ id, title, children, className, horizontalScroll, compact, invisible, onView, count, label, manaCards, cardsData, style }: DroppableZoneProps) {
+
+
+export function DroppableZone({ id, title, children, className, horizontalScroll, compact, invisible, onView, count, label, manaCards, cardsData, style, onContextMenu, onClick, showCount = true }: DroppableZoneProps) {
+
+
   const { isOver, setNodeRef } = useDroppable({
     id: id,
   });
@@ -39,19 +46,33 @@ export function DroppableZone({ id, title, children, className, horizontalScroll
     <div
       ref={setNodeRef}
       style={style}
+      onContextMenu={(e) => {
+        if (onContextMenu) {
+          e.preventDefault();
+          onContextMenu(e);
+        }
+      }}
+      onClick={(e) => {
+        if (onClick) {
+          e.stopPropagation();
+          onClick(e);
+        }
+      }}
+
+
       className={cn(
         "relative flex flex-col transition-all duration-500 rounded-sm border",
         compact
-          ? "w-[60px] h-[84px] bg-[#ffffff08] border-white/20 backdrop-blur-[16px] shadow-[inset_0_0_15px_rgba(255,255,255,0.03),0_0_10px_rgba(0,0,0,0.5)]"
+          ? "w-[60px] h-[84px] bg-slate-900/60 border-white/10 backdrop-blur-xl shadow-2xl"
           : "bg-transparent border-transparent",
         glowClass,
         className
       )}
     >
       {/* premium circular badge (Top Right) */}
-      {typeof count === 'number' && (
+      {showCount && typeof count === 'number' && (
         <div className={cn(
-          "absolute z-30 flex items-center gap-1 transition-all duration-300",
+          "absolute z-30 flex items-center gap-1 transition-all duration-300 pointer-events-none cursor-pointer",
           compact ? "top-0.5 right-0.5" : "top-2 right-2"
         )}>
           <div className={cn(
@@ -65,12 +86,7 @@ export function DroppableZone({ id, title, children, className, horizontalScroll
         </div>
       )}
 
-      {/* Label (Top Left) */}
-      {(label || (compact && label)) && (
-        <div className="absolute top-1 left-1.5 z-30 text-white font-black tracking-[1px] text-[8px] uppercase select-none pointer-events-none drop-shadow-[0_0_2px_rgba(255,255,255,0.8)] opacity-90">
-          {label}
-        </div>
-      )}
+      {/* Zone label removed as per user request */}
 
 
       {onView && (

@@ -588,7 +588,7 @@ export default function DeckBuilder() {
         position: "vertical" as CardPosition,
         face: "up" as CardFace,
         owner: "p1" as PlayerId,
-        linkedCardIds: [],
+        underlyingCards: [],
         backs: c.backs || []
       }));
       setAvailableCards(mapped);
@@ -828,7 +828,7 @@ export default function DeckBuilder() {
             position: "vertical" as CardPosition,
             face: "up" as CardFace,
             owner: "p1" as PlayerId,
-            linkedCardIds: [],
+            underlyingCards: [],
             backs: cardData.backs || []
           };
           if (target === "main") newMainCards.push(gc);
@@ -919,7 +919,7 @@ export default function DeckBuilder() {
               position: "vertical" as CardPosition,
               face: "up" as CardFace,
               owner: "p1" as PlayerId,
-              linkedCardIds: [],
+              underlyingCards: [],
               backs: cardData.backs || []
             });
           }
@@ -1042,7 +1042,7 @@ export default function DeckBuilder() {
             position: "vertical" as CardPosition,
             face: "up" as CardFace,
             owner: "p1" as PlayerId,
-            linkedCardIds: [],
+            underlyingCards: [],
             backs: cardData.backs || []
           });
         }

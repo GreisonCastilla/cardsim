@@ -5,6 +5,8 @@ import { cn } from "../lib/utils";
 import { DroppableZone } from "./DroppableZone";
 import { Card } from "./Card";
 import { GameCard, ZoneName, PlayerId } from "../store/gameStore";
+import { motion, AnimatePresence } from "framer-motion";
+import { ExtraZoneWidget } from "./ExtraZoneWidget";
 
 interface BattleZoneProps {
   pid: PlayerId;
@@ -14,6 +16,7 @@ interface BattleZoneProps {
   handleCardHover: (card: GameCard | null, zone?: ZoneName) => void;
   handleCardClick: (card: GameCard, event?: React.MouseEvent) => void;
   handleCardDoubleClick: (card: GameCard, event?: React.MouseEvent) => void;
+  handleContextMenu: (e: React.MouseEvent, card: GameCard, zone: ZoneName) => void;
   setIsBattleHovered: (hovered: boolean) => void;
 }
 
@@ -25,43 +28,81 @@ export function BattleZone({
   handleCardHover,
   handleCardClick,
   handleCardDoubleClick,
+  handleContextMenu,
   setIsBattleHovered,
 }: BattleZoneProps) {
-  const zoneKey = `${pid}_attackZone` as ZoneName;
-  
+  const frontKey = `${pid}_attackZone_front` as ZoneName;
+  const backKey = `${pid}_attackZone_back` as ZoneName;
+
+  // Combine both zones into a single list for unified display
+  const allCardIds = [...(zones[backKey] || []), ...(zones[frontKey] || [])];
+
   return (
     <div
-      className="relative h-full border-b border-[#00f2ff]/20 backdrop-blur-[16px] overflow-hidden"
+      className="relative h-full overflow-visible transition-colors duration-500 flex flex-col"
       style={{
-        backgroundColor: 'rgba(60, 30, 30, 0.18)',
-        backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255, 0, 0, 0.05) 0%, transparent 70%)'
+        cursor: 'default',
+        background: 'rgba(15, 23, 42, 0.3)',
+        backdropFilter: 'blur(16px)',
+        backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.02) 0%, transparent 70%)'
       }}
       onMouseEnter={() => setIsBattleHovered(true)}
       onMouseLeave={() => setIsBattleHovered(false)}
     >
+      {/* Espacio exclusivo de carta - Lado derecho del campo de batalla */}
+      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50 pointer-events-auto flex items-center justify-center">
+        <ExtraZoneWidget
+          pid={pid}
+          zones={zones}
+          cards={cards}
+          handleCardHover={handleCardHover}
+          handleCardClick={handleCardClick}
+          handleCardDoubleClick={handleCardDoubleClick}
+          handleContextMenu={handleContextMenu}
+        />
+      </div>
       <DroppableZone
-        id={zoneKey}
+        id={frontKey}
         title=""
+        className="flex-1 min-h-0 relative"
+        count={allCardIds.length}
+        showCount={false}
         label="BATTLE ZONE"
-        className="w-full h-full"
-        count={zones[zoneKey].length}
+        invisible
       >
-        <div className="flex flex-wrap justify-center content-center items-center p-4 gap-3 w-full h-full overflow-y-auto custom-scrollbar relative">
-          {zones[zoneKey].map(id => {
-            const c = cards[id];
-            return (
-              <div key={id} 
-                   className={cn("shrink-0 w-16 transition-transform duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-1 hover:z-50", rot, "relative")}>
-                <Card
-                  card={c}
-                  zone={zoneKey}
-                  onHover={(cardEvt) => handleCardHover(cardEvt, zoneKey)}
-                  onLeave={() => handleCardHover(null)}
-                  onClick={handleCardClick}
-                  onDoubleClick={handleCardDoubleClick}
-                />
-              </div>
-            )})}
+        <div className={cn(
+          "flex flex-wrap content-center items-center justify-center pb-2 gap-4 w-full h-full overflow-visible relative pt-5",
+          rot.includes("rotate-180") ? "pl-[6.5rem] pr-4" : "pl-4 pr-[6.5rem]"
+        )}>
+          <AnimatePresence mode="popLayout">
+            {allCardIds.map(id => {
+              const c = cards[id];
+              if (!c) return null;
+              const currentZone = zones[frontKey]?.includes(id) ? frontKey : backKey;
+
+              return (
+                <div
+                  key={id}
+                  className={cn(
+                    "shrink-0 relative flex items-center justify-center pointer-events-auto cursor-pointer transition-all duration-300",
+                    c.position === 'horizontal' ? "mx-3" : "mx-0",
+                    "w-[3.2rem] h-[4.5rem]",
+                    "hover:z-50"
+                  )}
+                >
+                  <Card
+                    card={c}
+                    zone={currentZone}
+                    onHover={(cardEvt) => handleCardHover(cardEvt, currentZone)}
+                    onLeave={() => handleCardHover(null)}
+                    onClick={handleCardClick}
+                    onDoubleClick={handleCardDoubleClick}
+                    onContextMenu={handleContextMenu}
+                  />
+                </div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </DroppableZone>
     </div>

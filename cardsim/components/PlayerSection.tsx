@@ -5,7 +5,10 @@ import { cn } from "../lib/utils";
 import { GameCard, ZoneName, PlayerId } from "../store/gameStore";
 import { BattleZone } from "./BattleZone";
 import { ResourceArea } from "./ResourceArea";
-import { SideHud } from "./SideHud";
+import { ShieldZoneWidget } from "./ShieldZoneWidget";
+import { ManaZoneStrip } from "./ManaZoneStrip";
+import { HyperspatialWidget } from "./HyperspatialWidget";
+import { GZoneWidget } from "./GZoneWidget";
 
 interface PlayerSectionProps {
   pid: PlayerId;
@@ -17,6 +20,7 @@ interface PlayerSectionProps {
   handleCardClick: (card: GameCard, event?: React.MouseEvent) => void;
   handleCardDoubleClick: (card: GameCard, event?: React.MouseEvent) => void;
   handleContextMenu: (e: React.MouseEvent, card: GameCard, zone: ZoneName) => void;
+  handleDeckClick: (pid: PlayerId) => void;
   setIsBattleHovered: (hovered: boolean) => void;
 }
 
@@ -30,12 +34,19 @@ export function PlayerSection({
   handleCardClick,
   handleCardDoubleClick,
   handleContextMenu,
+  handleDeckClick,
   setIsBattleHovered,
 }: PlayerSectionProps) {
+
   const rot = flipped ? "rotate-180" : "";
 
   return (
-    <div className={cn("grid grid-rows-[60%_40%] h-[50vh] w-full relative z-10 overflow-hidden", rot)}>
+    <div className={cn(
+      "grid h-full w-full relative z-10 overflow-hidden",
+      "grid-rows-[55%_22.5%_22.5%]",
+      flipped ? "pb-[3.8rem] rotate-180" : "pb-[3.8rem]"
+    )}>
+      {/* ─── Battle Zone (Flexible, takes remaining space) ─── */}
       <BattleZone
         pid={pid}
         rot={rot}
@@ -44,31 +55,75 @@ export function PlayerSection({
         handleCardHover={handleCardHover}
         handleCardClick={handleCardClick}
         handleCardDoubleClick={handleCardDoubleClick}
+        handleContextMenu={handleContextMenu}
         setIsBattleHovered={setIsBattleHovered}
       />
 
-      <ResourceArea
+      {/* ─── Shield Zone Strip (Row 2, closer to center) ─── */}
+      <ShieldZoneWidget
         pid={pid}
-        rot={rot}
-        f={flipped}
         zones={zones}
         cards={cards}
         handleCardHover={handleCardHover}
         handleCardClick={handleCardClick}
         handleCardDoubleClick={handleCardDoubleClick}
         handleContextMenu={handleContextMenu}
+        flipped={flipped}
       />
 
-      <SideHud
+      {/* ─── Mana Zone Strip (Row 3, closer to hand) ─── */}
+      <ManaZoneStrip
         pid={pid}
-        f={flipped}
         zones={zones}
         cards={cards}
-        setViewingZone={setViewingZone}
         handleCardHover={handleCardHover}
         handleCardClick={handleCardClick}
         handleCardDoubleClick={handleCardDoubleClick}
+        handleContextMenu={handleContextMenu}
+        flipped={flipped}
       />
+
+      {/* ─── Extra Zones (Hyperspatial & G Zone) - Absolutely Positioned on Left Flank ─── */}
+      <div className={cn(
+        "absolute bottom-0 z-50 flex items-center pointer-events-auto gap-4",
+        flipped ? "right-[4%] rotate-180 flex-row-reverse" : "left-[4%] flex-row"
+      )}>
+        <HyperspatialWidget
+          pid={pid}
+          zones={zones}
+          cards={cards}
+          handleCardHover={handleCardHover}
+          handleContextMenu={handleContextMenu}
+        />
+        <GZoneWidget
+          pid={pid}
+          zones={zones}
+          cards={cards}
+          handleCardHover={handleCardHover}
+          handleContextMenu={handleContextMenu}
+        />
+      </div>
+
+      {/* ─── Resource Area (Deck, Graveyard, Abyss) - Absolutely Positioned on Right Flank ─── */}
+      <div className={cn(
+        "absolute bottom-0 z-50 pointer-events-auto",
+        flipped ? "left-[4%]" : "right-[4%]"
+      )}>
+        <ResourceArea
+          pid={pid}
+          rot={flipped ? "rotate-180" : ""}
+          f={flipped}
+          zones={zones}
+          cards={cards}
+          handleCardHover={handleCardHover}
+          handleCardClick={handleCardClick}
+          handleCardDoubleClick={handleCardDoubleClick}
+          handleContextMenu={handleContextMenu}
+          handleDeckClick={handleDeckClick}
+          setViewingZone={setViewingZone}
+        />
+      </div>
+
     </div>
   );
 }

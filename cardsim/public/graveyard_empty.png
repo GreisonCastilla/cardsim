@@ -36,7 +36,7 @@ export function ResourceArea({
   setViewingZone,
 }: ResourceAreaProps) {
   return (
-    <div className={cn("flex gap-4 items-center", rot, f ? "flex-row-reverse" : "flex-row")}>
+    <div className={cn("flex gap-4 items-center", rot)}>
       <DeckWidget
         pid={pid}
         zones={zones}

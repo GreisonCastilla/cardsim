@@ -71,13 +71,22 @@ export function DeckMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-[1100] bg-[#090c12]/98 backdrop-blur-xl border border-white/10 shadow-4xl w-48 flex flex-col p-0 animate-in fade-in slide-in-from-bottom-4 duration-400 max-h-[80vh] overflow-hidden"
+      className="fixed z-[30000]"
       style={{
         left: deckMenu.x > window.innerWidth - 200 ? deckMenu.x - 200 : Math.max(10, deckMenu.x - 90),
-        top: Math.max(10, Math.min(deckMenu.y - 150, window.innerHeight - 400))
+        top: Math.max(10, Math.min(deckMenu.y - 150, window.innerHeight - 400)),
+        perspective: "1100px"
       }}
     >
-      <div className="px-3 py-2 flex justify-between items-center border-b border-white/10 bg-white/10">
+      <div 
+        className="bg-[#090c12]/98 backdrop-blur-xl border border-white/10 shadow-4xl w-48 flex flex-col p-0 animate-in fade-in slide-in-from-bottom-4 duration-400 max-h-[80vh] overflow-hidden rounded-xl"
+        style={{
+          transform: "rotateX(18deg) scale(0.95)",
+          transformStyle: "preserve-3d",
+          transformOrigin: "center center"
+        }}
+      >
+        <div className="px-3 py-2 flex justify-between items-center border-b border-white/10 bg-white/10">
         <span className="text-[9px] text-white font-black uppercase tracking-[0.3em] flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
           Library
@@ -118,6 +127,7 @@ export function DeckMenu({
         </div>
 
         <button onClick={() => { setViewingZone({ zone: `${deckMenu.pid}_mainDeck` as ZoneName, mode: "full" }); setDeckMenu(null); }} className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-[8px] text-white/40 font-black uppercase tracking-widest transition-all border-t border-white/5"><Eye size={12} /> View All</button>
+      </div>
       </div>
     </div>
   );

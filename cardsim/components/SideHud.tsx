@@ -15,6 +15,8 @@ interface SideHudProps {
   handleCardHover: (card: GameCard | null, zone?: ZoneName) => void;
   handleCardClick: (card: GameCard, event?: React.MouseEvent) => void;
   handleCardDoubleClick: (card: GameCard, event?: React.MouseEvent) => void;
+  handleContextMenu: (e: React.MouseEvent, card: GameCard, zone: ZoneName) => void;
+  handleDeckClick: (pid: PlayerId) => void;
 }
 
 export function SideHud({
@@ -26,7 +28,10 @@ export function SideHud({
   handleCardHover,
   handleCardClick,
   handleCardDoubleClick,
+  handleContextMenu,
+  handleDeckClick,
 }: SideHudProps) {
+
   const rot = f ? "rotate-180" : "";
 
   const renderHUDZone = (key: string) => {
@@ -44,7 +49,17 @@ export function SideHud({
         label={labels[key]}
         count={zones[zoneKey].length}
         onView={isPublic ? () => setViewingZone({ zone: zoneKey, mode: "full" }) : undefined}
+        onContextMenu={(e) => {
+           if (key === 'mainDeck' || key === 'cemetery' || key === 'hyperspatial' || key === 'gZone' || key === 'banishZone') {
+             const dummyCard = topCardId ? cards[topCardId] : { id: 'empty', owner: pid } as GameCard;
+             handleContextMenu(e, dummyCard, zoneKey);
+           }
+        }}
+        onClick={() => {
+          if (key === 'mainDeck') handleDeckClick(pid);
+        }}
       >
+
         {topCardId && (
           <div className={cn("absolute inset-0 p-1", rot)}>
             <Card
@@ -54,6 +69,7 @@ export function SideHud({
               onLeave={() => handleCardHover(null)}
               onClick={handleCardClick}
               onDoubleClick={handleCardDoubleClick}
+              onContextMenu={handleContextMenu}
             />
           </div>
         )}
@@ -61,30 +77,11 @@ export function SideHud({
     );
   };
 
+
   return (
     <>
-      {/* Extra Decks Row (Submerged, Edge Left) */}
-      <div className="absolute bottom-0 left-4 flex gap-1.5 z-[900] pointer-events-none">
-        {['hyperspatial', 'gZone'].map(key => (
-          <div
-            key={key}
-            className="pointer-events-auto transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] translate-y-[55%] hover:-translate-y-[calc(-55%+4px)] hover:scale-105 hover:z-[950] opacity-100 drop-shadow-2xl"
-          >
-            {renderHUDZone(key)}
-          </div>
-        ))}
-      </div>
-
-      {/* Main Flow Row (Submerged, Edge Right) */}
-      <div className="absolute bottom-0 right-4 flex gap-1.5 z-[900] pointer-events-none">
-        {['mainDeck', 'cemetery', 'banishZone'].map(key => (
-          <div
-            key={key}
-            className="pointer-events-auto transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] translate-y-[55%] hover:-translate-y-[calc(-55%+4px)] hover:scale-105 hover:z-[950] opacity-100 drop-shadow-2xl"
-          >
-            {renderHUDZone(key)}
-          </div>
-        ))}
+      <div className="absolute bottom-2 right-4 flex gap-4 items-end z-[900] pointer-events-none">
+        {/* Widgets removed as they were moved to ResourceArea */}
       </div>
     </>
   );

@@ -1,29 +1,30 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: #0f172a;
-  /* Slate 900 for modern dark theme */
-  --color-foreground: #f8fafc;
+@layer theme {
+  :root {
+    --color-background: #0f172a;
+    --color-foreground: #f8fafc;
 
-  /* Game Zones Colors */
-  --color-zone-attack: rgba(220, 38, 38, 0.15);
-  --color-zone-attack-border: #ef4444;
-  --color-zone-shield: rgba(59, 130, 246, 0.15);
-  --color-zone-shield-border: #3b82f6;
-  --color-zone-mana: rgba(16, 185, 129, 0.15);
-  --color-zone-mana-border: #10b981;
-  --color-zone-cemetery: rgba(107, 114, 128, 0.15);
-  --color-zone-cemetery-border: #9ca3af;
-  --color-zone-banish: rgba(168, 85, 247, 0.15);
-  --color-zone-banish-border: #a855f7;
-  --color-zone-deck: rgba(245, 158, 11, 0.15);
-  --color-zone-deck-border: #f59e0b;
-  --color-zone-extra: rgba(236, 72, 153, 0.15);
-  --color-zone-extra-border: #ec4899;
+    /* Game Zones Colors */
+    --color-zone-attack: rgba(220, 38, 38, 0.15);
+    --color-zone-attack-border: #ef4444;
+    --color-zone-shield: rgba(59, 130, 246, 0.15);
+    --color-zone-shield-border: #3b82f6;
+    --color-zone-mana: rgba(16, 185, 129, 0.15);
+    --color-zone-mana-border: #10b981;
+    --color-zone-cemetery: rgba(107, 114, 128, 0.15);
+    --color-zone-cemetery-border: #9ca3af;
+    --color-zone-banish: rgba(168, 85, 247, 0.15);
+    --color-zone-banish-border: #a855f7;
+    --color-zone-deck: rgba(245, 158, 11, 0.15);
+    --color-zone-deck-border: #f59e0b;
+    --color-zone-extra: rgba(236, 72, 153, 0.15);
+    --color-zone-extra-border: #ec4899;
+  }
 }
 
 :root {
-  --background: radial-gradient(circle at center, #111827 0%, #030508 100%);
+  --background: radial-gradient(ellipse at center, #0c1220 0%, #030508 100%);
   --foreground: #f8fafc;
 }
 
@@ -39,88 +40,380 @@ body {
   overflow: hidden;
 }
 
-/* Base utility for glassmorphism */
-@utility glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
+@layer utilities {
 
-@utility glass-mana {
-  background: rgba(16, 185, 129, 0.08);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.05);
-}
-
-@utility glass-shield {
-  background: rgba(245, 158, 11, 0.08);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.05);
-}
-
-@utility badge-neon-mana {
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
-  border: 1px solid rgba(16, 185, 129, 0.5);
-}
-
-@utility badge-neon-shield {
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-  border: 1px solid rgba(245, 158, 11, 0.5);
-}
-
-@utility custom-scrollbar-thin {
-  &::-webkit-scrollbar {
-    width: 3px;
+  /* Base utility for glassmorphism */
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-  }
-}
 
-@utility custom-scrollbar-invisible {
-  &::-webkit-scrollbar {
-    width: 0px;
-    height: 0px;
-    background: transparent;
+  .glass-mana {
+    background: rgba(16, 185, 129, 0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    box-shadow: inset 0 0 15px rgba(16, 185, 129, 0.03);
   }
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+
+  .glass-shield {
+    background: rgba(245, 158, 11, 0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    box-shadow: inset 0 0 15px rgba(245, 158, 11, 0.03);
+  }
+
+  .badge-neon-mana {
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.25);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+  }
+
+  .badge-neon-shield {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.25);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+  }
+
+  .custom-scrollbar-thin {
+    &::-webkit-scrollbar {
+      width: 2px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+
+    &:hover::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .custom-scrollbar-invisible {
+    &::-webkit-scrollbar {
+      width: 0px;
+      height: 0px;
+      background: transparent;
+    }
+
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
 }
 
-@keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-12px);
+.animate-gradient {
+  animation: gradientMove 3s ease infinite;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3D ISOMETRIC FIELD — Refined 2.5D Perspective System
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.field-3d-perspective {
+  position: absolute;
+  inset: 0;
+  perspective: 1100px;
+  perspective-origin: 50% 56%;
+  z-index: 1;
+  overflow: visible;
+}
+
+.field-3d-surface {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transform: rotateX(18deg) scale(0.95);
+  transform-style: preserve-3d;
+  transform-origin: center 54%;
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 8, 16, 0.98) 0%,
+    rgba(10, 14, 28, 0.95) 15%,
+    rgba(12, 18, 35, 0.92) 40%,
+    rgba(12, 18, 35, 0.92) 60%,
+    rgba(10, 14, 28, 0.95) 85%,
+    rgba(6, 8, 16, 0.98) 100%
+  );
+}
+
+/* Subtle grid pattern */
+.field-grid-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(0, 160, 255, 0.025) 59px, rgba(0, 160, 255, 0.025) 60px),
+    repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(0, 160, 255, 0.025) 59px, rgba(0, 160, 255, 0.025) 60px);
+}
+
+.field-grid-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(0, 160, 255, 0.01) 14px, rgba(0, 160, 255, 0.01) 15px),
+    repeating-linear-gradient(90deg, transparent, transparent 14px, rgba(0, 160, 255, 0.01) 14px, rgba(0, 160, 255, 0.01) 15px);
+}
+
+.field-grid-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 180, 255, 0.02) 50%, transparent 100%);
+  background-size: 100% 200%;
+  animation: gridScan 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes gridScan {
+  0%,
+  100% {
+    background-position: 0% 0%;
   }
-  to {
-    opacity: 1;
-    transform: translateX(0);
+
+  50% {
+    background-position: 0% 100%;
   }
 }
 
-@keyframes fadeSlideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
+/* Center glow — subtle energy core */
+.field-center-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 160, 255, 0.06) 0%, rgba(120, 80, 220, 0.03) 40%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+  animation: centerPulse 6s ease-in-out infinite;
+}
+
+@keyframes centerPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1);
   }
-  to {
-    opacity: 0;
-    transform: translateX(-12px);
+
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.05);
   }
+}
+
+/* Center divider line */
+.center-neon-line {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  flex-shrink: 0;
+  z-index: 5;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 200, 255, 0.08) 10%,
+    rgba(0, 200, 255, 0.4) 30%,
+    rgba(120, 80, 220, 0.4) 50%,
+    rgba(0, 200, 255, 0.4) 70%,
+    rgba(0, 200, 255, 0.08) 90%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 6px rgba(0, 200, 255, 0.15),
+    0 0 20px rgba(0, 200, 255, 0.06),
+    0 0 40px rgba(120, 80, 220, 0.04);
+}
+
+.center-neon-line::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to bottom, transparent, rgba(0, 200, 255, 0.015), transparent);
+  pointer-events: none;
+}
+
+.center-neon-line::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.04) 50%, transparent 100%);
+  animation: neonFlicker 4s ease-in-out infinite;
+}
+
+@keyframes neonFlicker {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Edge vignette */
+.field-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  box-shadow:
+    inset 0 50px 60px -15px rgba(0, 0, 0, 0.5),
+    inset 0 -50px 60px -15px rgba(0, 0, 0, 0.5),
+    inset 50px 0 60px -15px rgba(0, 0, 0, 0.25),
+    inset -50px 0 60px -15px rgba(0, 0, 0, 0.25);
+}
+
+/* Ambient color blobs */
+.field-3d-surface::before {
+  content: '';
+  position: absolute;
+  top: 8%;
+  left: 8%;
+  width: 30%;
+  height: 30%;
+  background: radial-gradient(circle, rgba(80, 90, 200, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.field-3d-surface::after {
+  content: '';
+  position: absolute;
+  bottom: 8%;
+  right: 8%;
+  width: 30%;
+  height: 30%;
+  background: radial-gradient(circle, rgba(16, 160, 120, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.field-grid-overlay,
+.field-center-glow,
+.field-vignette {
+  pointer-events: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL CURSOR FIXES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/*
+ * Force pointer cursor on the card element AND every descendant.
+ * IMPORTANT: We only set `cursor`, never `pointer-events` here.
+ * `pointer-events` is controlled per-element via Tailwind (pointer-events-none
+ * on decorative children), and must NOT be overridden globally.
+ *
+ * The second rule ensures that any element with pointer-events-auto inside
+ * a card-element that has cursor-default (e.g. summoning sickness indicator)
+ * still shows pointer — preventing any fall-through flicker.
+ */
+.card-element,
+.card-element *,
+.card-element [style*="cursor"],
+.card-element [class*="cursor-"] {
+  cursor: pointer !important;
+}
+
+/* Grabbing cursor takes priority during active drag */
+.card-element.cursor-grabbing,
+.card-element.cursor-grabbing * {
+  cursor: grabbing !important;
+}
+
+/* Maintain grabbing cursor during drag (dnd-kit DragOverlay) */
+.cursor-grabbing,
+.cursor-grabbing * {
+  cursor: grabbing !important;
+}
+
+/* Buttons always show pointer */
+button {
+  cursor: pointer !important;
+  pointer-events: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SUMMONING SICKNESS ORBITAL EFFECT — Pure CSS (GPU compositor thread)
+   All animations here run without JS frame overhead.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The orbit wheel spins clockwise */
+@keyframes sickness-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Each star counter-spins so it stays upright */
+@keyframes sickness-counter-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(-360deg); }
+}
+
+/* Rim glow pulse */
+@keyframes sickness-rim-pulse {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.55; }
+}
+
+.sickness-orbit-wheel {
+  animation: sickness-spin 3.6s linear infinite;
+  /* Promote to its own GPU layer — avoids repaints */
+  will-change: transform;
+}
+
+.sickness-star {
+  position: absolute;
+  user-select: none;
+  line-height: 1;
+  display: block;
+  pointer-events: none !important;
+  /* counter-spin keeps the glyph facing up; translate(-50%,-50%) centers it */
+  animation: sickness-counter-spin 3.6s linear infinite;
+  will-change: transform;
+}
+
+.sickness-rim {
+  pointer-events: none !important;
+  animation: sickness-rim-pulse 2s ease-in-out infinite;
 }
