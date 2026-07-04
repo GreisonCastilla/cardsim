@@ -112,7 +112,7 @@ export function useGameDnD({
             // Logic for dropping on a zone
             moveCard(cardId, fromZone, toZone);
         }
-    }, [zones, moveCard, linkCard, showNotification, setActiveCard, myRole]);
+    }, [zones, moveCard, linkCard, showNotification, setActiveCard, myRole, isMyTurn]);
 
     const handleDragCancel = useCallback(() => {
         setActiveCard(null);

@@ -5,7 +5,6 @@ import (
 	"cardsim-backend/server"
 	"log"
 	"net/http"
-	"path/filepath"
 )
 
 func main() {
@@ -13,7 +12,7 @@ func main() {
 	data.InitDB("cardsim.db")
 	
 	// Load Cards JSON
-	cardsPath := filepath.Join("..", "cards.json") // Assumes backend runs in cardsim-backend folder
+	cardsPath := "cards.json" // Located inside backend directory
 	if err := data.LoadCards(cardsPath); err != nil {
 		log.Printf("Warning: Failed to load cards.json: %v", err)
 	}
