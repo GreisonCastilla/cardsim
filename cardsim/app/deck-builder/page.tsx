@@ -81,6 +81,7 @@ export default function DeckBuilder() {
   const [clipboardFace, setClipboardFace] = useState<any>(null);
   const [wikiUrl, setWikiUrl] = useState("");
   const [isParsingWiki, setIsParsingWiki] = useState(false);
+  const [stratRepresentations, setStratRepresentations] = useState<Record<string, GameCard>>({});
   const deduplicate = (val: string) => {
     if (!val) return val;
     let text = val.trim();
@@ -538,6 +539,55 @@ export default function DeckBuilder() {
       }
     };
     initDecks();
+  }, []);
+
+  useEffect(() => {
+    const prefetchStrats = async () => {
+      const names = ["Forbidden ~The Sealed X~", "FORBIDDEN STAR ~World's Last Day~", "Zerom, Origin of Destruction"];
+      try {
+        const cardMap = await fetchCardsByNames(names);
+        const mapped: Record<string, GameCard> = {};
+        names.forEach(name => {
+          const cardData = cardMap[name.toLowerCase()];
+          if (cardData) {
+            mapped[name.toLowerCase()] = {
+              id: `strat_rep_${name}`,
+              name: cardData.name_en || cardData.name_ja || "Unknown Card",
+              nameJa: cardData.name_ja,
+              nameEn: cardData.name_en,
+              image: cardData.image_url,
+              description: cardData.abilities_en || cardData.abilities_ja || "",
+              descriptionJa: cardData.abilities_ja,
+              descriptionEn: cardData.abilities_en,
+              manaCost: cardData.cost || cardData.mana || "-",
+              attack: cardData.power || "-",
+              civilization: cardData.civilization || "",
+              raceEn: cardData.race_en || "",
+              raceJa: cardData.race_ja || "",
+              typeEn: cardData.type_en || "",
+              typeJa: cardData.type_ja || "",
+              primary_set: cardData.primary_set || "",
+              rarity: cardData.rarity || "",
+              illustrator: cardData.illustrator || "",
+              mana: cardData.mana || "",
+              hyperpower: cardData.hyperpower || "",
+              source_url: cardData.source_url || "",
+              sets: cardData.sets || [],
+              color: "#3b82f6",
+              position: "vertical" as CardPosition,
+              face: "up" as CardFace,
+              owner: "p1" as PlayerId,
+              underlyingCards: [],
+              backs: cardData.backs || []
+            };
+          }
+        });
+        setStratRepresentations(mapped);
+      } catch (e) {
+        console.error("Failed to prefetch strategy representations:", e);
+      }
+    };
+    prefetchStrats();
   }, []);
 
   const currentDeck = useMemo(() => decks.find(d => d.id === currentDeckId) || { id: "err", name: "Error", mainDeck: [], gZone: [], hyperspatial: [], legendary: [] }, [decks, currentDeckId]);
@@ -1060,7 +1110,7 @@ export default function DeckBuilder() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white font-sans selection:bg-blue-500/30 overflow-hidden flex h-screen text-sm border-t border-white/5">
+    <div className="w-full min-h-screen bg-[#0f172a] text-white font-sans selection:bg-blue-500/30 overflow-hidden flex h-screen text-sm border-t border-white/5">
       {/* Details Panel - Sidebar */}
       <aside className="w-[300px] xl:w-[320px] 2xl:w-[350px] shrink-0 h-full flex flex-col overflow-hidden border-r border-white/5 bg-slate-900/60 backdrop-blur-xl">
         <div className="p-5 flex-1 flex flex-col gap-4 overflow-hidden animate-in fade-in slide-in-from-left-4">
@@ -1453,90 +1503,98 @@ export default function DeckBuilder() {
                 )}
 
                 {activeDeckTab === "legendary" && (
-                  <div className="flex flex-col w-full h-full">
-                    {currentDeck.legendary.length === 0 ? (
-                      <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500 py-12">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-16 justify-items-center items-center w-full max-w-5xl">
-                          {[
-                            {
-                              name: "Forbidden ~The Sealed X~",
-                              cards: ["Forbidden ~The Sealed X~"],
-                              img: "https://static.wikia.nocookie.net/duelmasters/images/5/58/Dm25ex4-tr4a.jpg/revision/latest?cb=20260207101206",
-                              id: "strat-dorma"
-                            },
-                            {
-                              name: "FORBIDDEN STAR",
-                              cards: [
-                                "FORBIDDEN STAR ~World's Last Day~",
-                                "Forbidden ~Awakening of Destruction~",
-                                "Forbidden ~Awakening of Sealing~",
-                                "Forbidden ~Awakening of Black~",
-                                "Forbidden ~Dawn of Awakening~"
-                              ],
-                              img: "https://static.wikia.nocookie.net/duelmasters/images/e/e2/Dmr23-ffl1%2B2%2B3%2B4%2B5a.jpg/revision/latest?cb=20161216210147",
-                              id: "strat-star"
-                            },
-                            {
-                              name: "ZEROM",
-                              cards: ["Zerom, Origin of Destruction", "Ceremony of Graveyard", "Ceremony of Hands", "Ceremony of Resurrection", "Ceremony of Destruction"],
-                              img: "https://static.wikia.nocookie.net/duelmasters/images/4/48/Dmbd22-mz1a.jpg/revision/latest?cb=20220802114004",
-                              id: "strat-zerom"
-                            }
-                          ].map(strat => (
-                            <div key={strat.id} className="flex flex-col items-center gap-4 group">
-                              <motion.div
-                                whileHover={{ scale: 1.2, y: -15 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => applyStrategy(strat.cards)}
-                                className="relative w-[180px] aspect-[3/4.2] cursor-pointer shadow-[0_20px_45px_rgba(0,0,0,0.7)] rounded-xl overflow-hidden border-2 border-white/10 hover:border-orange-500 transition-all focus:outline-none"
-                              >
-                                <img src={strat.img} className="absolute inset-0 w-full h-full object-cover" alt={strat.name} />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-100 group-hover:opacity-0 transition-opacity" />
-                              </motion.div>
-                              <span className="text-[10px] font-black text-slate-400 font-mono uppercase tracking-[0.2em] text-center leading-tight group-hover:text-orange-400 transition-colors">{strat.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-8 h-full">
-                        <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-10 2xl:grid-cols-12 gap-6 content-start pb-8">
-                          <div className="col-span-full flex justify-end">
-                            <button
-                              onClick={() => updateCurrentDeck(d => ({ ...d, legendary: [] }))}
-                              className="px-6 py-2.5 bg-slate-900 hover:bg-red-600 text-[10px] font-black uppercase tracking-widest text-white rounded-xl border border-white/10 transition-all active:scale-95 flex items-center gap-2"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              {t("別の戦略を選択", "Choose Different Strategy")}
-                            </button>
-                          </div>
-                          {groupedLegendary.map(({ card, count }) => (
+                  currentDeck.legendary.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500 py-12">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-16 justify-items-center items-center w-full max-w-5xl">
+                        {[
+                          {
+                            name: "Forbidden ~The Sealed X~",
+                            cards: ["Forbidden ~The Sealed X~"],
+                            img: "https://static.wikia.nocookie.net/duelmasters/images/5/58/Dm25ex4-tr4a.jpg/revision/latest?cb=20260207101206",
+                            id: "strat-dorma"
+                          },
+                          {
+                            name: "FORBIDDEN STAR",
+                            cards: [
+                              "FORBIDDEN STAR ~World's Last Day~",
+                              "Forbidden ~Awakening of Destruction~",
+                              "Forbidden ~Awakening of Sealing~",
+                              "Forbidden ~Awakening of Black~",
+                              "Forbidden ~Dawn of Awakening~"
+                            ],
+                            img: "https://static.wikia.nocookie.net/duelmasters/images/e/e2/Dmr23-ffl1%2B2%2B3%2B4%2B5a.jpg/revision/latest?cb=20161216210147",
+                            id: "strat-star"
+                          },
+                          {
+                            name: "ZEROM",
+                            cards: ["Zerom, Origin of Destruction", "Ceremony of Graveyard", "Ceremony of Hands", "Ceremony of Resurrection", "Ceremony of Destruction"],
+                            img: "https://static.wikia.nocookie.net/duelmasters/images/4/48/Dmbd22-mz1a.jpg/revision/latest?cb=20220802114004",
+                            id: "strat-zerom"
+                          }
+                        ].map(strat => (
+                          <div key={strat.id} className="flex flex-col items-center gap-4 group">
                             <motion.div
-                              layout
-                              key={card.id}
-                              className="relative aspect-[3/4] flex flex-col items-center"
+                              whileHover={{ scale: 1.2, y: -15 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => applyStrategy(strat.cards)}
+                              onMouseEnter={() => {
+                                const key = strat.id === "strat-dorma"
+                                  ? "forbidden ~the sealed x~"
+                                  : strat.id === "strat-star"
+                                  ? "forbidden star ~world's last day~"
+                                  : "zerom, origin of destruction";
+                                const rep = stratRepresentations[key];
+                                if (rep) {
+                                  setSelectedCard(rep);
+                                  setViewFaceIndex(0);
+                                }
+                              }}
+                              className="relative w-[180px] aspect-[3/4.2] cursor-pointer shadow-[0_20px_45px_rgba(0,0,0,0.7)] rounded-xl overflow-hidden border-2 border-white/10 hover:border-orange-500 transition-all focus:outline-none"
                             >
-                              <div
-                                className="w-full h-full relative group shadow-md rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all"
-                                onClick={() => { setSelectedCard(card); setViewFaceIndex(0); addCard(card, "legendary"); }}
-                                onMouseEnter={() => { setSelectedCard(card); setViewFaceIndex(0); setActiveCardKey("legendary_" + card.id); }}
-                                onMouseLeave={() => setActiveCardKey(null)}
-                                onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "legendary"); }}
-                              >
-                                <Card card={card} isStatic />
-                                <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-xl overflow-hidden px-1 w-[90%] mx-auto transition-all ${activeCardKey === "legendary_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                                  <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "legendary"); }}><Minus className="w-2.5 h-2.5" /></button>
-                                  <span className="text-[8px] font-black w-3 text-center text-white">{count}</span>
-                                  <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "legendary"); }}><Plus className="w-2.5 h-2.5" /></button>
-                                </div>
-                                <motion.div key={`count-${count}`} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="absolute -top-2 -right-2 z-[120] bg-orange-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50">{count}</motion.div>
-                              </div>
+                              <img src={strat.img} className="absolute inset-0 w-full h-full object-cover" alt={strat.name} />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-100 group-hover:opacity-0 transition-opacity" />
                             </motion.div>
-                          ))}
-                        </div>
+                            <span className="text-[10px] font-black text-slate-400 font-mono uppercase tracking-[0.2em] text-center leading-tight group-hover:text-orange-400 transition-colors">{strat.name}</span>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-10 2xl:grid-cols-12 gap-4 content-start pb-8">
+                      <div className="col-span-full flex justify-end">
+                        <button
+                          onClick={() => updateCurrentDeck(d => ({ ...d, legendary: [] }))}
+                          className="px-6 py-2.5 bg-slate-900 hover:bg-red-600 text-[10px] font-black uppercase tracking-widest text-white rounded-xl border border-white/10 transition-all active:scale-95 flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          {t("別の戦略を選択", "Choose Different Strategy")}
+                        </button>
+                      </div>
+                      {groupedLegendary.map(({ card, count }) => (
+                        <motion.div
+                          layout
+                          key={card.id}
+                          className="relative aspect-[3/4] flex flex-col items-center"
+                        >
+                          <div
+                            className="w-full h-full relative group shadow-md rounded-sm cursor-pointer hover:scale-125 hover:z-[100] transition-all"
+                            onClick={() => { setSelectedCard(card); setViewFaceIndex(0); addCard(card, "legendary"); }}
+                            onMouseEnter={() => { setSelectedCard(card); setViewFaceIndex(0); setActiveCardKey("legendary_" + card.id); }}
+                            onMouseLeave={() => setActiveCardKey(null)}
+                            onContextMenu={(e) => { e.preventDefault(); removeGroupedCard(card, "legendary"); }}
+                          >
+                            <Card card={card} isStatic />
+                            <div className={`absolute -bottom-2 inset-x-0 z-[110] flex items-center justify-between bg-slate-800 border border-slate-600 rounded-full shadow-xl overflow-hidden px-1 w-[90%] mx-auto transition-all ${activeCardKey === "legendary_" + card.id ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                              <button className="p-0.5 text-red-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeGroupedCard(card, "legendary"); }}><Minus className="w-2.5 h-2.5" /></button>
+                              <span className="text-[8px] font-black w-3 text-center text-white">{count}</span>
+                              <button className="p-0.5 text-emerald-400 hover:bg-slate-700 cursor-pointer" onClick={(e) => { e.stopPropagation(); addCard(card, "legendary"); }}><Plus className="w-2.5 h-2.5" /></button>
+                            </div>
+                            <motion.div key={`count-${count}`} initial={{ scale: 1.5, opacity: 0.5 }} animate={{ scale: 1, opacity: 1 }} className="absolute -top-2 -right-2 z-[120] bg-orange-600 border-2 border-white/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg ring-1 ring-black/50">{count}</motion.div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
             </div>

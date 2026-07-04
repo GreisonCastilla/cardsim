@@ -10,8 +10,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./cardsim-backend/cardsim.db:/app/cardsim-backend/cardsim.db
-      - ./cardsim-backend/cards.json:/app/cards.json
-      - ./cardsim-backend/double_side_cards.json:/app/double_side_cards.json
+      - ./cardsim-backend/cards.json:/app/cardsim-backend/cards.json
+      - ./cardsim-backend/double_side_cards.json:/app/cardsim-backend/double_side_cards.json
     environment:
       - GIN_MODE=release
 
